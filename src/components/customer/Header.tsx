@@ -24,7 +24,7 @@ export const Header: FC<HeaderProps> = ({ activeNav }) => {
         <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between">
           <span class="flex items-center gap-1.5">
             <i class="fas fa-circle-check text-ok-lime-400"></i>
-            দাম কম, কথা পরিষ্কার — Fake Discount নয়
+            বাংলাদেশের সর্বপ্রথম ট্রু প্রাইস প্লাটফর্ম, ন্যায্য মূল্যের নিশ্চয়তায় Offerekini.com
           </span>
           <div class="flex items-center gap-4">
             <a href="/track-order" class="hover:text-ok-lime-400 flex items-center gap-1"><i class="fas fa-truck-fast"></i> অর্ডার ট্র্যাক করুন</a>

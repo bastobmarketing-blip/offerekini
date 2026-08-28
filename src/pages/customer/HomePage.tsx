@@ -21,7 +21,7 @@ export const HomePage: FC = () => {
   const newArrivals = getNewArrivals()
 
   return (
-    <CustomerLayout title="দাম কম, কথা পরিষ্কার" activeNav="deals" activeMobileNav="home">
+    <CustomerLayout title="ন্যায্য মূল্যের নিশ্চয়তায় Offerekini.com" activeNav="deals" activeMobileNav="home">
       {/* ============================= HERO ============================= */}
       <section class="relative bg-ok-green-900 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20 grid lg:grid-cols-2 gap-8 items-center">
@@ -32,8 +32,8 @@ export const HomePage: FC = () => {
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
               offerekini.com এখানে <span class="text-ok-lime-400">দাম অনেক কম</span>
             </h1>
-            <p class="text-white/75 text-sm sm:text-base leading-relaxed mb-7 max-w-md mx-auto lg:mx-0">
-              Fake Discount নয়। সত্যিকারের কম দামে পণ্য। offerekini.com-এ প্রতিটি দাম স্বচ্ছ, প্রতিটি অফার সত্যি।
+            <p class="text-white/85 text-base sm:text-lg leading-relaxed mb-7 max-w-lg mx-auto lg:mx-0 font-medium">
+              বাংলাদেশের সর্বপ্রথম ট্রু প্রাইস প্লাটফর্ম, ন্যায্য মূল্যের নিশ্চয়তায় Offerekini.com
             </p>
             <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
               <Button href="#todays-deals" size="lg" variant="secondary" className="w-full sm:w-auto">
