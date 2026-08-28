@@ -7,7 +7,7 @@ export const AdminLoginPage: FC = () => (
     <div class="min-h-screen bg-ok-charcoal flex items-center justify-center px-4 py-12">
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
-          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-9 mx-auto mb-4" />
+          <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-9 mx-auto mb-4" />
           <p class="text-ok-lime-500 font-bold text-sm tracking-wide">OFFERKINI ADMIN</p>
           <h1 class="text-white text-xl font-extrabold mt-2">সিকিউর অ্যাডমিন প্যানেল</h1>
         </div>

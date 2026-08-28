@@ -18,7 +18,7 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title} | OfferKini</title>
         {description && <meta name="description" content={description} />}
-        <link rel="icon" type="image/png" href="/static/images/brand/offerkini-logo.png" />
+        <link rel="icon" type="image/png" href="/static/images/brand/offerkini-logo.svg" />
 
         <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />

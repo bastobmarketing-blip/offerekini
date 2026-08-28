@@ -28,7 +28,7 @@ export const MerchantTopbar: FC<MerchantTopbarProps> = ({ title, merchantName = 
     <div id="merchant-menu-overlay" class="hidden lg:hidden fixed inset-0 bg-black/40 z-40"></div>
     <aside id="merchant-menu-drawer" class="hidden lg:hidden fixed top-0 left-0 h-full w-72 bg-ok-green-900 text-white z-40 flex-col overflow-y-auto">
       <div class="p-5 border-b border-white/10 flex items-center justify-between">
-        <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+        <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-7" />
         <button id="merchant-menu-close" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
           <i class="fas fa-xmark"></i>
         </button>

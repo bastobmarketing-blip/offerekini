@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 export const MerchantSidebar: FC<{ active: string }> = ({ active }) => (
   <aside class="hidden lg:flex flex-col w-64 shrink-0 bg-ok-green-900 text-white min-h-screen sticky top-0">
     <div class="p-5 border-b border-white/10">
-      <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+      <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-7" />
       <p class="text-xs text-white/50 mt-2">Merchant Panel</p>
     </div>
     <nav class="flex-1 p-3 space-y-1 overflow-y-auto">

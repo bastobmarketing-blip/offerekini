@@ -7,7 +7,7 @@ export const RegisterPage: FC = () => (
     <div class="max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div class="text-center mb-8">
         <div class="inline-block bg-ok-green-900 rounded-xl px-4 py-2.5 mb-5">
-          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+          <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-7" />
         </div>
         <h1 class="text-xl font-extrabold">নতুন অ্যাকাউন্ট তৈরি করুন</h1>
         <p class="text-sm text-ok-gray-500 mt-1">সত্যিকারের কম দামে পণ্য পেতে যোগ দিন</p>

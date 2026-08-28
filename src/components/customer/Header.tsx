@@ -37,7 +37,7 @@ export const Header: FC<HeaderProps> = ({ activeNav }) => {
         <div class="flex items-center justify-between gap-3 py-2.5 sm:py-3">
           {/* Logo */}
           <a href="/" class="flex items-center gap-2 shrink-0">
-            <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7 sm:h-8 w-auto" />
+            <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-7 sm:h-8 w-auto" />
           </a>
 
           {/* Desktop nav */}
@@ -113,7 +113,7 @@ export const Header: FC<HeaderProps> = ({ activeNav }) => {
       <div id="mobile-menu-overlay" class="hidden fixed inset-0 bg-black/40 z-50"></div>
       <aside id="mobile-menu" class="hidden fixed top-0 right-0 h-full w-[82%] max-w-sm bg-white z-50 shadow-2xl flex-col overflow-y-auto">
         <div class="flex items-center justify-between p-4 bg-ok-green-900 border-b border-white/10">
-          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+          <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-7" />
           <button id="mobile-menu-close" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white">
             <i class="fas fa-xmark text-lg"></i>
           </button>
