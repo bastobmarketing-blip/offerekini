@@ -5,7 +5,7 @@ export const Footer: FC = () => (
     <div class="max-w-7xl mx-auto px-4 py-10 sm:py-14">
       <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8">
         <div class="col-span-2 lg:col-span-2">
-          <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-8 mb-4" />
+          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-8 mb-4" />
           <p class="text-sm text-white/70 leading-relaxed max-w-xs">
             OfferKini একটি True Price Commerce প্ল্যাটফর্ম — যেখানে ফেক ডিসকাউন্ট নয়, সত্যিকারের কম দামে পণ্য পাওয়া যায়।
           </p>

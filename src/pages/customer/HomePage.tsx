@@ -30,10 +30,10 @@ export const HomePage: FC = () => {
               <i class="fas fa-shield-halved"></i> True Price Commerce Platform
             </span>
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-4">
-              OfferKini.com এখানে <span class="text-ok-lime-400">দাম অনেক কম</span>
+              offerekini.com এখানে <span class="text-ok-lime-400">দাম অনেক কম</span>
             </h1>
             <p class="text-white/75 text-sm sm:text-base leading-relaxed mb-7 max-w-md mx-auto lg:mx-0">
-              Fake Discount নয়। সত্যিকারের কম দামে পণ্য। OfferKini-তে প্রতিটি দাম স্বচ্ছ, প্রতিটি অফার সত্যি।
+              Fake Discount নয়। সত্যিকারের কম দামে পণ্য। offerekini.com-এ প্রতিটি দাম স্বচ্ছ, প্রতিটি অফার সত্যি।
             </p>
             <div class="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
               <Button href="#todays-deals" size="lg" variant="secondary" className="w-full sm:w-auto">

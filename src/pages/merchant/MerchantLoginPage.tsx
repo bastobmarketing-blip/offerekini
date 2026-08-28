@@ -7,7 +7,7 @@ export const MerchantLoginPage: FC = () => (
     <div class="min-h-screen bg-ok-green-900 flex items-center justify-center px-4 py-12">
       <div class="w-full max-w-md">
         <div class="text-center mb-8">
-          <img src="/static/images/brand/offerkini-logo.svg" alt="OfferKini" class="h-9 mx-auto mb-4" />
+          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-9 mx-auto mb-4" />
           <p class="text-ok-lime-400 font-bold text-sm tracking-wide">OFFERKINI MERCHANT</p>
           <h1 class="text-white text-xl sm:text-2xl font-extrabold mt-3 leading-snug">
             আপনার পণ্য, আরও একটি Sales Channel।
