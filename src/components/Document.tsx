@@ -52,12 +52,11 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
             }
           `
         }} />
-        <link href="/static/style.css" rel="stylesheet" />
+        <script src="/static/js/app.js"></script>
       </head>
       <body class={bodyClass || 'bg-ok-offwhite text-ok-charcoal'} style="background:#f6f8f6;">
         {children}
         <div id="toast-root"></div>
-        <script src="/static/js/app.js"></script>
       </body>
     </html>
   )

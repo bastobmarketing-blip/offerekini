@@ -45,11 +45,50 @@ import { MerchantSettingsPage } from './pages/merchant/MerchantSettingsPage'
 // ---- Admin pages ----
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
+import { AdminMerchantsPage } from './pages/admin/AdminMerchantsPage'
+import { AdminProductsPage } from './pages/admin/AdminProductsPage'
+import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
 
 const app = new Hono()
 
-// Demo "logged in" merchant for the frontend-only prototype
+// Demo "logged in" merchant for the prototype
 const DEMO_MERCHANT_ID = 'mer-1'
+
+// ==========================================================================
+// SUBDOMAIN MIDDLEWARE
+// Handles admin.offerekini.com & merchant.offerekini.com
+// ==========================================================================
+app.use('*', async (c, next) => {
+  const host = (c.req.header('host') || '').toLowerCase()
+  const path = c.req.path
+
+  // Skip static assets
+  if (path.startsWith('/static/')) {
+    return await next()
+  }
+
+  // Admin Subdomain: admin.offerekini.com
+  if (host.startsWith('admin.')) {
+    if (path === '/' || path === '') {
+      return c.redirect('/admin/dashboard')
+    }
+    if (!path.startsWith('/admin')) {
+      return c.redirect(`/admin${path}`)
+    }
+  }
+
+  // Merchant Subdomain: merchant.offerekini.com or seller.offerekini.com
+  if (host.startsWith('merchant.') || host.startsWith('seller.')) {
+    if (path === '/' || path === '') {
+      return c.redirect('/merchant/dashboard')
+    }
+    if (!path.startsWith('/merchant')) {
+      return c.redirect(`/merchant${path}`)
+    }
+  }
+
+  await next()
+})
 
 // ==========================================================================
 // CUSTOMER ROUTES
@@ -105,7 +144,7 @@ app.get('/terms', (c) => c.html(<LegalPage {...termsContent} />))
 app.get('/delivery-policy', (c) => c.html(<LegalPage {...deliveryPolicyContent} />))
 app.get('/return-policy', (c) => c.html(<LegalPage {...returnPolicyContent} />))
 
-// Demo customer account (frontend-only — no real auth/session)
+// Customer account routes
 const DEMO_CUSTOMER_PHONE = '01711-112233'
 app.get('/account', (c) => {
   const customer = getCustomerByPhone(DEMO_CUSTOMER_PHONE) || customers[0]
@@ -124,7 +163,7 @@ app.get('/account/order/:id', (c) => {
 })
 
 // ==========================================================================
-// MERCHANT ROUTES (demo merchant = mer-1, no real auth)
+// MERCHANT ROUTES
 // ==========================================================================
 app.get('/merchant/login', (c) => c.html(<MerchantLoginPage />))
 
@@ -180,9 +219,8 @@ app.get('/merchant/settings', (c) => c.html(<MerchantSettingsPage />))
 // ==========================================================================
 app.get('/admin/login', (c) => c.html(<AdminLoginPage />))
 app.get('/admin/dashboard', (c) => c.html(<AdminDashboardPage />))
-
-// Remaining admin sub-pages (merchants, products, orders, categories, deals,
-// homepage, banners, settlements, customers, reports, settings) are part of
-// the planned-but-not-yet-built scope — see README "Not Yet Implemented".
+app.get('/admin/merchants', (c) => c.html(<AdminMerchantsPage />))
+app.get('/admin/products', (c) => c.html(<AdminProductsPage />))
+app.get('/admin/orders', (c) => c.html(<AdminOrdersPage />))
 
 export default app

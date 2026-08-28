@@ -130,7 +130,11 @@ export const CartPage: FC = () => (
             });
           });
         }
-        render();
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', render);
+        } else {
+          render();
+        }
       })();
       `
     }} />

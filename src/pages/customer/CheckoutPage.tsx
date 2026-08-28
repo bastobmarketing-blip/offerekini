@@ -12,12 +12,13 @@ export const CheckoutPage: FC = () => (
       <h1 class="text-xl sm:text-2xl font-extrabold mt-3 mb-6">চেকআউট</h1>
 
       <div id="checkout-empty" class="hidden">
-        <div class="flex flex-col items-center justify-center text-center py-16 px-4">
+        <div class="flex flex-col items-center justify-center text-center py-16 px-4 bg-white rounded-2xl border border-gray-100">
           <div class="w-16 h-16 rounded-full bg-ok-green-50 flex items-center justify-center mb-4">
             <i class="fas fa-cart-shopping text-2xl text-ok-green-800"></i>
           </div>
-          <h3 class="font-bold text-lg mb-1">কার্ট খালি, চেকআউট করা যাবে না</h3>
-          <a href="/products" class="bg-ok-green-800 text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-ok-green-900 mt-4 inline-block">
+          <h3 class="font-bold text-lg mb-1 text-ok-charcoal">কার্ট খালি, চেকআউট করা যাবে না</h3>
+          <p class="text-sm text-ok-gray-500 mb-5">পছন্দের পণ্য কার্টে যুক্ত করে চেকআউট সম্পন্ন করুন।</p>
+          <a href="/products" class="bg-ok-green-800 text-white font-semibold text-sm px-6 py-3 rounded-xl hover:bg-ok-green-900 transition-colors inline-block">
             পণ্য দেখুন
           </a>
         </div>
@@ -72,19 +73,19 @@ export const CheckoutPage: FC = () => (
             </div>
 
             <div class="bg-ok-green-50 rounded-xl p-3 mt-4 text-xs text-ok-gray-600 leading-relaxed flex gap-2">
-              <i class="fas fa-shield-halved text-ok-green-700 mt-0.5"></i>
-              <span>ডেলিভারি চার্জ আগে পরিশোধ করলে Fake order কমে এবং আমরা পণ্যের দাম কম রাখতে পারি। বাকি টাকা পণ্য হাতে পাওয়ার সময় ক্যাশ অন ডেলিভারিতে দিবেন।</span>
+              <i class="fas fa-shield-halved text-ok-green-700 mt-0.5 shrink-0"></i>
+              <span>বাংলাদেশের সর্বপ্রথম ট্রু প্রাইস প্লাটফর্ম, ন্যায্য মূল্যের নিশ্চয়তায় Offerekini.com। বাকি টাকা ক্যাশ অন ডেলিভারিতে দিবেন।</span>
             </div>
 
             <button
               type="submit"
               id="checkout-submit-btn"
-              class="w-full bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold py-3.5 rounded-xl mt-4 transition-colors flex items-center justify-center gap-2"
+              class="w-full bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold py-3.5 rounded-xl mt-4 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <span id="checkout-submit-label"><span id="checkout-pay-now-label">৳0</span> দিয়ে অর্ডার নিশ্চিত করুন</span>
             </button>
             <p class="text-[11px] text-ok-gray-400 text-center mt-3">
-              <i class="fas fa-lock mr-1"></i> এটি একটি ডেমো UI। কোনো প্রকৃত পেমেন্ট গ্রহণ করা হবে না।
+              <i class="fas fa-lock mr-1"></i> এটি একটি নিরাপদ চেকআউট সিস্টেম।
             </p>
           </div>
         </div>
@@ -94,82 +95,116 @@ export const CheckoutPage: FC = () => (
     <script dangerouslySetInnerHTML={{
       __html: `
       (function () {
-        var cart = window.OK.getCart();
-        var emptyEl = document.getElementById('checkout-empty');
-        var formEl = document.getElementById('checkout-form');
+        function initCheckout() {
+          if (!window.OK) return;
+          var cart = window.OK.getCart();
+          var emptyEl = document.getElementById('checkout-empty');
+          var formEl = document.getElementById('checkout-form');
+          if (!emptyEl || !formEl) return;
 
-        if (cart.length === 0) {
-          emptyEl.classList.remove('hidden');
-          return;
-        }
-        formEl.classList.remove('hidden');
-        formEl.classList.add('grid');
+          // Quick buy fallback via URL params e.g. /checkout?productId=p-1
+          var urlParams = new URLSearchParams(window.location.search);
+          var qPid = urlParams.get('productId');
+          if (qPid && (!cart || cart.length === 0)) {
+            window.OK.addToCart(qPid, 1);
+            cart = window.OK.getCart();
+          }
 
-        var itemsWrap = document.getElementById('checkout-items');
-        var html = '';
-        cart.forEach(function (item) {
-          var p = window.OK.findCatalogItem(item.productId);
-          if (!p) return;
-          html += '<div class="flex gap-3 items-center">' +
-            '<img src="' + p.image + '" class="w-14 h-14 rounded-lg object-cover bg-gray-50"/>' +
-            '<div class="flex-1 min-w-0">' +
-            '<p class="text-sm font-semibold line-clamp-1">' + p.name + '</p>' +
-            '<p class="text-xs text-ok-gray-500">পরিমাণ: ' + item.quantity + ' × ' + window.OK.formatBDT(p.price) + '</p>' +
-            '</div>' +
-            '<span class="font-bold text-sm">' + window.OK.formatBDT(p.price * item.quantity) + '</span>' +
-            '</div>';
-        });
-        itemsWrap.innerHTML = html;
+          if (!cart || cart.length === 0) {
+            emptyEl.classList.remove('hidden');
+            formEl.classList.add('hidden');
+            return;
+          }
+          emptyEl.classList.add('hidden');
+          formEl.classList.remove('hidden');
+          formEl.classList.add('grid');
 
-        var totals = window.OK.cartTotals();
-        document.getElementById('checkout-product-total').textContent = window.OK.formatBDT(totals.productTotal);
-        document.getElementById('checkout-delivery').textContent = window.OK.formatBDT(totals.deliveryCharge);
-        document.getElementById('checkout-pay-now').textContent = window.OK.formatBDT(totals.payNow);
-        document.getElementById('checkout-due').textContent = window.OK.formatBDT(totals.dueOnDelivery);
-        document.getElementById('checkout-pay-now-label').textContent = window.OK.formatBDT(totals.payNow);
-
-        formEl.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var btn = document.getElementById('checkout-submit-btn');
-          btn.disabled = true;
-          btn.innerHTML = '<span class="ok-spinner"></span> অর্ডার প্রসেস হচ্ছে...';
-
-          var formData = new FormData(formEl);
-          var orderId = 'OK-' + Math.floor(10000 + Math.random() * 89999);
-          var cartSnapshot = window.OK.getCart().map(function (item) {
+          var itemsWrap = document.getElementById('checkout-items');
+          var html = '';
+          cart.forEach(function (item) {
             var p = window.OK.findCatalogItem(item.productId);
-            return {
-              productId: item.productId,
-              name: p ? p.name : '',
-              image: p ? p.image : '',
-              quantity: item.quantity,
-              unitPrice: p ? p.price : 0,
-              variantLabel: item.variantLabel || null
-            };
+            if (!p) return;
+            html += '<div class="flex gap-3 items-center border-b border-gray-50 pb-3">' +
+              '<img src="' + p.image + '" class="w-14 h-14 rounded-lg object-cover bg-gray-50 shrink-0"/>' +
+              '<div class="flex-1 min-w-0">' +
+              '<p class="text-sm font-semibold line-clamp-1">' + p.name + '</p>' +
+              '<p class="text-xs text-ok-gray-500">পরিমাণ: ' + item.quantity + ' × ' + window.OK.formatBDT(p.price) + '</p>' +
+              '</div>' +
+              '<span class="font-bold text-sm text-ok-green-800">' + window.OK.formatBDT(p.price * item.quantity) + '</span>' +
+              '</div>';
           });
-          var totalsSnap = window.OK.cartTotals();
-          var order = {
-            id: orderId,
-            customerName: formData.get('name'),
-            customerPhone: formData.get('phone'),
-            district: formData.get('district'),
-            area: formData.get('area'),
-            address: formData.get('address'),
-            items: cartSnapshot,
-            productTotal: totalsSnap.productTotal,
-            deliveryCharge: totalsSnap.deliveryCharge,
-            payNow: totalsSnap.payNow,
-            dueOnDelivery: totalsSnap.dueOnDelivery,
-            grandTotal: totalsSnap.grandTotal,
-            createdAt: new Date().toISOString()
-          };
+          itemsWrap.innerHTML = html;
 
-          setTimeout(function () {
-            localStorage.setItem('offerkini_last_order', JSON.stringify(order));
-            window.OK.clearCart();
-            window.location.href = '/order-success';
-          }, 900);
-        });
+          var totals = window.OK.cartTotals();
+          var prodEl = document.getElementById('checkout-product-total');
+          var delEl = document.getElementById('checkout-delivery');
+          var payEl = document.getElementById('checkout-pay-now');
+          var dueEl = document.getElementById('checkout-due');
+          var payLbl = document.getElementById('checkout-pay-now-label');
+          if (prodEl) prodEl.textContent = window.OK.formatBDT(totals.productTotal);
+          if (delEl) delEl.textContent = window.OK.formatBDT(totals.deliveryCharge);
+          if (payEl) payEl.textContent = window.OK.formatBDT(totals.payNow);
+          if (dueEl) dueEl.textContent = window.OK.formatBDT(totals.dueOnDelivery);
+          if (payLbl) payLbl.textContent = window.OK.formatBDT(totals.payNow);
+
+          formEl.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var btn = document.getElementById('checkout-submit-btn');
+            if (btn) {
+              btn.disabled = true;
+              btn.innerHTML = '<span class="ok-spinner"></span> অর্ডার প্রসেস হচ্ছে...';
+            }
+
+            var formData = new FormData(formEl);
+            var orderId = 'OK-' + Math.floor(10000 + Math.random() * 89999);
+            var cartSnapshot = window.OK.getCart().map(function (item) {
+              var p = window.OK.findCatalogItem(item.productId);
+              return {
+                productId: item.productId,
+                productName: p ? p.name : '',
+                productImage: p ? p.image : '',
+                quantity: item.quantity,
+                unitPrice: p ? p.price : 0,
+                variantLabel: item.variantLabel || null
+              };
+            });
+            var totalsSnap = window.OK.cartTotals();
+            var order = {
+              id: orderId,
+              customerName: formData.get('name'),
+              customerPhone: formData.get('phone'),
+              district: formData.get('district'),
+              area: formData.get('area'),
+              address: formData.get('address'),
+              items: cartSnapshot,
+              productTotal: totalsSnap.productTotal,
+              deliveryCharge: totalsSnap.deliveryCharge,
+              advancePaid: totalsSnap.payNow,
+              dueOnDelivery: totalsSnap.dueOnDelivery,
+              totalAmount: totalsSnap.grandTotal,
+              status: 'pending',
+              createdAt: new Date().toISOString()
+            };
+
+            setTimeout(function () {
+              try {
+                localStorage.setItem('offerkini_last_order', JSON.stringify(order));
+                var existing = [];
+                try { existing = JSON.parse(localStorage.getItem('offerkini_orders') || '[]'); } catch(e){}
+                existing.unshift(order);
+                localStorage.setItem('offerkini_orders', JSON.stringify(existing));
+              } catch(e){}
+              window.OK.clearCart();
+              window.location.href = '/order-success';
+            }, 800);
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initCheckout);
+        } else {
+          initCheckout();
+        }
       })();
       `
     }} />
