@@ -122,13 +122,7 @@ app.post('/api/eps/initiate', async (c) => {
   }
 })
 
-app.get('/payment/eps-gateway', (c) => {
-  const trxId = c.req.query('trxId') || `TRX-${Date.now()}`
-  const orderId = c.req.query('orderId') || 'OK-1001'
-  const amount = Number(c.req.query('amount')) || 60
-  const customerName = c.req.query('name') || 'Customer'
-  return c.html(<EpsGatewayPage trxId={trxId} orderId={orderId} amount={amount} customerName={customerName} />)
-})
+app.get('/payment/eps-gateway', (c) => c.redirect('/checkout'))
 
 app.get('/payment/success', async (c) => {
   const orderId = c.req.query('orderId') || ''
