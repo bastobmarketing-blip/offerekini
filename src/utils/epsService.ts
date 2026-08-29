@@ -177,14 +177,17 @@ export interface InitiateOrderPaymentParams {
 export async function initiateEpsPayment(params: InitiateOrderPaymentParams) {
   const trxId = generateTransactionId()
 
+  // Base domain registered with EPS portal (bebsashikhi.com or offerekini.com via EPS_BASE_URL)
+  const epsDomain = process.env.EPS_BASE_URL || 'https://bebsashikhi.com'
+
   try {
     const response = await eps.initializePayment({
       customerOrderId: params.orderId,
       merchantTransactionId: trxId,
       totalAmount: params.amount,
-      successUrl: `${params.baseUrl}/payment/success?trxId=${trxId}&orderId=${params.orderId}`,
-      failUrl: `${params.baseUrl}/payment/fail?trxId=${trxId}&orderId=${params.orderId}`,
-      cancelUrl: `${params.baseUrl}/payment/cancel?trxId=${trxId}&orderId=${params.orderId}`,
+      successUrl: `${epsDomain}/payment/success?trxId=${trxId}&orderId=${params.orderId}`,
+      failUrl: `${epsDomain}/payment/fail?trxId=${trxId}&orderId=${params.orderId}`,
+      cancelUrl: `${epsDomain}/payment/cancel?trxId=${trxId}&orderId=${params.orderId}`,
       customerName: params.customerName || 'Customer',
       customerEmail: `${params.customerPhone.replace(/[^0-9]/g, '')}@offerekini.com`,
       customerAddress: params.customerAddress || 'Dhaka',
@@ -196,31 +199,46 @@ export async function initiateEpsPayment(params: InitiateOrderPaymentParams) {
     })
 
     if (response && response.RedirectURL) {
+      console.log('EPS Gateway Initialization Success:', response.RedirectURL)
       return {
         success: true,
         trxId,
         redirectUrl: response.RedirectURL,
       }
+    } else {
+      console.error('EPS Gateway initialization response error:', response)
+      return {
+        success: false,
+        error: response?.ErrorMessage || response?.errorMessage || 'EPS Gateway error',
+      }
     }
   } catch (error: any) {
-    console.error('EPS Production Gateway API error:', error?.message || error)
-  }
-
-  // EPS Gateway Simulation Page URL fallback
-  const demoGatewayUrl = `${params.baseUrl}/payment/eps-gateway?trxId=${trxId}&orderId=${params.orderId}&amount=${params.amount}&name=${encodeURIComponent(params.customerName)}`
-  return {
-    success: true,
-    trxId,
-    redirectUrl: demoGatewayUrl,
+    const errMsg = error?.response?.data?.ErrorMessage || error?.response?.data || error?.message || 'EPS Gateway connection error'
+    console.error('EPS Production Gateway API error:', errMsg)
+    return {
+      success: false,
+      error: typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg),
+    }
   }
 }
 
-export async function verifyEpsPayment(trxId: string) {
+/**
+ * Verifies transaction with EPS Production API.
+ * STRICT: Returns true ONLY if EPS API confirms transaction status as Success / Successful.
+ */
+export async function verifyEpsPayment(trxId: string): Promise<boolean> {
+  if (!trxId) return false
   try {
     const res = await eps.verifyPayment(trxId)
-    return res && res.Status === 'Success'
-  } catch (e) {
-    console.error('EPS Verify Error:', e)
+    console.log('EPS Verify Response for TrxId', trxId, ':', res)
+    if (res && res.Status) {
+      const status = String(res.Status).toLowerCase()
+      if (status === 'success' || status === 'successful' || status === 'completed') {
+        return true
+      }
+    }
+  } catch (e: any) {
+    console.error('EPS Verify API Error for TrxId', trxId, ':', e?.message || e)
   }
-  return true
+  return false // STRICT: MUST return false if not verified by EPS API
 }

@@ -122,49 +122,6 @@ app.post('/api/eps/initiate', async (c) => {
   }
 })
 
-// EPS verify-and-complete: Called from EPS Gateway page after user selects payment method
-app.post('/api/eps/verify-and-complete', async (c) => {
-  try {
-    const body = await c.req.json()
-    const { trxId, orderId, amount, channel, mfsPhone } = body
-
-    if (!trxId || !orderId || !amount || !channel) {
-      return c.json({ verified: false, error: 'Missing required fields' }, 400)
-    }
-
-    // Validate MFS phone for mobile banking channels
-    const mfsChannels = ['bKash', 'Nagad', 'Rocket', 'CellFin']
-    if (mfsChannels.includes(channel)) {
-      const cleanPhone = (mfsPhone || '').replace(/[^0-9]/g, '')
-      if (cleanPhone.length !== 11 || cleanPhone[0] !== '0') {
-        return c.json({ verified: false, error: 'Invalid MFS phone number' }, 400)
-      }
-    }
-
-    // Try real EPS verification if live credentials are configured
-    let epsVerified = false
-    try {
-      epsVerified = await verifyEpsPayment(trxId)
-    } catch (e) {
-      console.error('EPS verify call failed:', e)
-    }
-
-    // For the simulator flow: mark as verified since user completed the payment form
-    // In production with real EPS, epsVerified would come from the actual EPS API
-    return c.json({
-      verified: true,
-      trxId,
-      orderId,
-      channel,
-      paymentStatus: 'advance_paid',
-      message: 'Payment verified successfully'
-    })
-  } catch (err: any) {
-    console.error('EPS verify-and-complete error:', err)
-    return c.json({ verified: false, error: err.message }, 500)
-  }
-})
-
 app.get('/payment/eps-gateway', (c) => {
   const trxId = c.req.query('trxId') || `TRX-${Date.now()}`
   const orderId = c.req.query('orderId') || 'OK-1001'
@@ -176,11 +133,13 @@ app.get('/payment/eps-gateway', (c) => {
 app.get('/payment/success', async (c) => {
   const orderId = c.req.query('orderId') || ''
   const trxId = c.req.query('trxId') || ''
-  const verified = c.req.query('verified') === 'true'
 
-  // Only complete the order if payment was verified
-  if (!verified) {
-    return c.redirect(`/checkout?error=payment_not_verified`)
+  // STRICT EPS VERIFICATION AGAINST REAL EPS API
+  const isVerified = await verifyEpsPayment(trxId)
+
+  if (!isVerified) {
+    console.warn(`[EPS Security Alert] Unverified payment attempt for order ${orderId}, TrxId: ${trxId}`)
+    return c.redirect(`/checkout?error=payment_unverified&trxId=${encodeURIComponent(trxId)}`)
   }
 
   return c.html(

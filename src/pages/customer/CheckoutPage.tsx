@@ -119,6 +119,15 @@ export const CheckoutPage: FC = () => (
             cart = window.OK.getCart();
           }
 
+          // Handle checkout error messages from query params e.g. /checkout?error=payment_unverified
+          if (urlParams.get('error') === 'payment_unverified') {
+            if (window.OK && window.OK.toast) {
+              window.OK.toast('পেমেন্ট সফলভাবে ভেরিফাই হয়নি! অনুগ্রহ করে EPS গেটওয়েতে মূল্য পরিশোধ করুন।', 'error');
+            } else {
+              alert('পেমেন্ট সফলভাবে ভেরিফাই হয়নি! অনুগ্রহ করে EPS গেটওয়েতে মূল্য পরিশোধ করুন।');
+            }
+          }
+
           if (!cart || cart.length === 0) {
             emptyEl.classList.remove('hidden');
             formEl.classList.add('hidden');
@@ -217,15 +226,28 @@ export const CheckoutPage: FC = () => (
             })
             .then(function(res) { return res.json(); })
             .then(function(data) {
-              if (data && data.redirectUrl) {
+              if (data && data.success && data.redirectUrl) {
                 window.location.href = data.redirectUrl;
               } else {
-                window.location.href = '/payment/eps-gateway?orderId=' + orderId + '&amount=' + totalsSnap.payNow + '&name=' + encodeURIComponent(formData.get('name'));
+                if (btn) {
+                  btn.disabled = false;
+                  btn.innerHTML = '<span id="checkout-pay-now-label">' + window.OK.formatBDT(totalsSnap.payNow) + '</span> দিয়ে EPS-এ অগ্রিম পে করুন';
+                }
+                var errTxt = (data && data.error) ? data.error : 'EPS Gateway connection error';
+                if (window.OK && window.OK.toast) {
+                  window.OK.toast('EPS পেমেন্ট এরর: ' + errTxt, 'error');
+                } else {
+                  alert('EPS পেমেন্ট এরর: ' + errTxt);
+                }
               }
             })
             .catch(function(err) {
-              console.error('EPS initiate fallback:', err);
-              window.location.href = '/payment/eps-gateway?orderId=' + orderId + '&amount=' + totalsSnap.payNow + '&name=' + encodeURIComponent(formData.get('name'));
+              console.error('EPS initiate error:', err);
+              if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span id="checkout-pay-now-label">' + window.OK.formatBDT(totalsSnap.payNow) + '</span> দিয়ে EPS-এ অগ্রিম পে করুন';
+              }
+              alert('EPS গেটওয়ে সংযোগ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
             });
           });
         }
