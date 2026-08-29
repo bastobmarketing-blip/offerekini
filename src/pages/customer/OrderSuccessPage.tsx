@@ -25,7 +25,7 @@ export const OrderSuccessPage: FC = () => (
               <p class="text-xs text-ok-gray-500">অর্ডার আইডি</p>
               <p id="order-success-id" class="font-bold text-lg text-ok-green-800">—</p>
             </div>
-            <span class="bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">অর্ডার গ্রহণ করা হয়েছে</span>
+            <span id="order-success-payment-badge" class="bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">অর্ডার গ্রহণ করা হয়েছে</span>
           </div>
 
           <div id="order-success-items" class="space-y-3 mb-4"></div>
@@ -63,7 +63,7 @@ export const OrderSuccessPage: FC = () => (
 
     <script dangerouslySetInnerHTML={{
       __html: `
-      (function () {
+       (function () {
         var raw = localStorage.getItem('offerkini_last_order');
         var emptyEl = document.getElementById('order-success-empty');
         var contentEl = document.getElementById('order-success-content');
@@ -75,14 +75,29 @@ export const OrderSuccessPage: FC = () => (
         contentEl.classList.remove('hidden');
 
         document.getElementById('order-success-id').textContent = order.id;
-        document.getElementById('order-success-advance').textContent = window.OK.formatBDT(order.payNow);
-        document.getElementById('order-success-due').textContent = window.OK.formatBDT(order.dueOnDelivery);
+        // Handle both property naming conventions
+        var advanceAmt = order.advancePaid || order.payNow || order.deliveryCharge || 0;
+        var dueAmt = order.dueOnDelivery || order.productTotal || 0;
+        document.getElementById('order-success-advance').textContent = window.OK.formatBDT(advanceAmt);
+        document.getElementById('order-success-due').textContent = window.OK.formatBDT(dueAmt);
+
+        // Show payment status badge
+        var badge = document.getElementById('order-success-payment-badge');
+        if (badge && order.paymentStatus === 'advance_paid') {
+          badge.textContent = '✅ অগ্রিম পেমেন্ট সম্পন্ন';
+          badge.className = 'bg-green-50 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full';
+        } else if (badge && order.paymentStatus === 'pending_payment') {
+          badge.textContent = '⏳ পেমেন্ট অপেক্ষমান';
+          badge.className = 'bg-yellow-50 text-yellow-700 text-xs font-bold px-3 py-1.5 rounded-full';
+        }
 
         var itemsHtml = '';
         (order.items || []).forEach(function (item) {
+          var imgSrc = item.productImage || item.image || '/static/img/placeholder.png';
+          var itemName = item.productName || item.name || 'পণ্য';
           itemsHtml += '<div class="flex gap-3 items-center">' +
-            '<img src="' + item.image + '" class="w-12 h-12 rounded-lg object-cover bg-gray-50"/>' +
-            '<div class="flex-1 min-w-0"><p class="text-sm font-medium line-clamp-1">' + item.name + '</p>' +
+            '<img src="' + imgSrc + '" class="w-12 h-12 rounded-lg object-cover bg-gray-50"/>' +
+            '<div class="flex-1 min-w-0"><p class="text-sm font-medium line-clamp-1">' + itemName + '</p>' +
             '<p class="text-xs text-ok-gray-500">পরিমাণ: ' + item.quantity + '</p></div>' +
             '<span class="text-sm font-semibold">' + window.OK.formatBDT(item.unitPrice * item.quantity) + '</span>' +
             '</div>';
@@ -91,7 +106,7 @@ export const OrderSuccessPage: FC = () => (
 
         document.getElementById('order-success-delivery-info').innerHTML =
           '<p><span class="text-ok-charcoal font-medium">' + order.customerName + '</span> — ' + order.customerPhone + '</p>' +
-          '<p>' + order.address + ', ' + order.area + ', ' + order.district + '</p>';
+          '<p>' + (order.address || '') + ', ' + (order.area || '') + ', ' + (order.district || '') + '</p>';
       })();
       `
     }} />
