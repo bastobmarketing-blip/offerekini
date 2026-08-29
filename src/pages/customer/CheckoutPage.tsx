@@ -9,10 +9,10 @@ export const CheckoutPage: FC = () => (
   <CustomerLayout title="চেকআউট" showMobileNav={false}>
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
       <Breadcrumb items={[{ label: 'কার্ট', href: '/cart' }, { label: 'চেকআউট' }]} />
-      <h1 class="text-xl sm:text-2xl font-extrabold mt-3 mb-6">চেকআউট</h1>
+      <h1 class="text-xl sm:text-2xl font-extrabold mt-3 mb-6">অর্ডার চেকআউট (EPS Gateway Integration)</h1>
 
       <div id="checkout-empty" class="hidden">
-        <div class="flex flex-col items-center justify-center text-center py-16 px-4 bg-white rounded-2xl border border-gray-100">
+        <div class="flex flex-col items-center justify-center text-center py-16 px-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div class="w-16 h-16 rounded-full bg-ok-green-50 flex items-center justify-center mb-4">
             <i class="fas fa-cart-shopping text-2xl text-ok-green-800"></i>
           </div>
@@ -27,7 +27,7 @@ export const CheckoutPage: FC = () => (
       <form id="checkout-form" class="hidden grid lg:grid-cols-3 gap-6">
         {/* ============ LEFT: Customer info + order summary ============ */}
         <div class="lg:col-span-2 space-y-6">
-          <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
             <h3 class="font-bold text-base mb-4 flex items-center gap-2">
               <i class="fas fa-user text-ok-green-800"></i> কাস্টমার তথ্য
             </h3>
@@ -40,7 +40,7 @@ export const CheckoutPage: FC = () => (
             </div>
           </div>
 
-          <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6">
+          <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
             <h3 class="font-bold text-base mb-4 flex items-center gap-2">
               <i class="fas fa-receipt text-ok-green-800"></i> অর্ডার সামারি
             </h3>
@@ -50,7 +50,7 @@ export const CheckoutPage: FC = () => (
 
         {/* ============ RIGHT: Payment summary ============ */}
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-gray-100 p-5 sticky top-24">
+          <div class="bg-white rounded-2xl border border-gray-100 p-5 sticky top-24 shadow-sm">
             <h3 class="font-bold text-base mb-4">পেমেন্ট সামারি</h3>
             <div class="space-y-2.5 text-sm">
               <div class="flex justify-between">
@@ -58,34 +58,43 @@ export const CheckoutPage: FC = () => (
                 <span id="checkout-product-total" class="font-semibold">৳0</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-ok-gray-500">ডেলিভারি চার্জ</span>
-                <span id="checkout-delivery" class="font-semibold">৳0</span>
+                <span class="text-ok-gray-500">অগ্রিম ডেলিভারি চার্জ</span>
+                <span id="checkout-delivery" class="font-semibold text-ok-green-800">৳0</span>
               </div>
               <div class="h-px bg-gray-100 my-2"></div>
               <div class="flex justify-between items-center bg-ok-lime-500/15 rounded-lg px-3 py-2">
-                <span class="font-bold text-ok-green-900">এখন পরিশোধ করবেন</span>
+                <span class="font-bold text-ok-green-900 text-xs">EPS গেটওয়েতে পরিশোধ</span>
                 <span id="checkout-pay-now" class="font-extrabold text-ok-green-800 text-lg">৳0</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-ok-gray-500">ডেলিভারির সময়</span>
+                <span class="text-ok-gray-500">ক্যাশ অন ডেলিভারি (পণ্য পেয়ে)</span>
                 <span id="checkout-due" class="font-semibold">৳0</span>
               </div>
             </div>
 
-            <div class="bg-ok-green-50 rounded-xl p-3 mt-4 text-xs text-ok-gray-600 leading-relaxed flex gap-2">
-              <i class="fas fa-shield-halved text-ok-green-700 mt-0.5 shrink-0"></i>
-              <span>বাংলাদেশের সর্বপ্রথম ট্রু প্রাইস প্লাটফর্ম, ন্যায্য মূল্যের নিশ্চয়তায় Offerekini.com। বাকি টাকা ক্যাশ অন ডেলিভারিতে দিবেন।</span>
+            {/* EPS Payment Method Branding Badge */}
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-3.5 mt-4 text-xs text-blue-900 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold flex items-center gap-1.5 text-blue-950">
+                  <span class="bg-blue-700 text-white font-black text-[10px] px-1.5 py-0.5 rounded">EPS</span>
+                  Easy Payment Gateway
+                </span>
+                <span class="text-[10px] bg-blue-200/60 text-blue-800 px-2 py-0.5 rounded-full font-semibold">100% Secured</span>
+              </div>
+              <p class="text-[11px] text-blue-800/80 leading-relaxed">
+                অগ্রিম পেমেন্ট EPS গেটওয়ের মাধ্যমে (bKash, Nagad, Rocket, Visa/Mastercard) সরাসরি সম্পন্ন করতে পারবেন।
+              </p>
             </div>
 
             <button
               type="submit"
               id="checkout-submit-btn"
-              class="w-full bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold py-3.5 rounded-xl mt-4 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl mt-4 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-700/20"
             >
-              <span id="checkout-submit-label"><span id="checkout-pay-now-label">৳0</span> দিয়ে অর্ডার নিশ্চিত করুন</span>
+              <span id="checkout-submit-label"><span id="checkout-pay-now-label">৳0</span> দিয়ে EPS-এ অগ্রিম পে করুন</span>
             </button>
             <p class="text-[11px] text-ok-gray-400 text-center mt-3">
-              <i class="fas fa-lock mr-1"></i> এটি একটি নিরাপদ চেকআউট সিস্টেম।
+              <i class="fas fa-shield-halved text-blue-600 mr-1"></i> EPS (Easy Payment System) লোগো সহ বাংলাদেশ ব্যাংক অনুমোদিত।
             </p>
           </div>
         </div>
@@ -152,7 +161,7 @@ export const CheckoutPage: FC = () => (
             var btn = document.getElementById('checkout-submit-btn');
             if (btn) {
               btn.disabled = true;
-              btn.innerHTML = '<span class="ok-spinner"></span> অর্ডার প্রসেস হচ্ছে...';
+              btn.innerHTML = '<span class="ok-spinner"></span> EPS গেটওয়েতে রিডাইরেক্ট করা হচ্ছে...';
             }
 
             var formData = new FormData(formEl);
@@ -186,17 +195,38 @@ export const CheckoutPage: FC = () => (
               createdAt: new Date().toISOString()
             };
 
-            setTimeout(function () {
-              try {
-                localStorage.setItem('offerkini_last_order', JSON.stringify(order));
-                var existing = [];
-                try { existing = JSON.parse(localStorage.getItem('offerkini_orders') || '[]'); } catch(e){}
-                existing.unshift(order);
-                localStorage.setItem('offerkini_orders', JSON.stringify(existing));
-              } catch(e){}
-              window.OK.clearCart();
-              window.location.href = '/order-success';
-            }, 800);
+            // Save order snapshot locally
+            try {
+              localStorage.setItem('offerkini_pending_order', JSON.stringify(order));
+              localStorage.setItem('offerkini_last_order', JSON.stringify(order));
+            } catch(e){}
+
+            // Call backend API to initiate EPS payment
+            fetch('/api/eps/initiate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: orderId,
+                amount: totalsSnap.payNow,
+                customerName: formData.get('name'),
+                customerPhone: formData.get('phone'),
+                district: formData.get('district'),
+                area: formData.get('area'),
+                address: formData.get('address')
+              })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              if (data && data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+              } else {
+                window.location.href = '/payment/eps-gateway?orderId=' + orderId + '&amount=' + totalsSnap.payNow + '&name=' + encodeURIComponent(formData.get('name'));
+              }
+            })
+            .catch(function(err) {
+              console.error('EPS initiate fallback:', err);
+              window.location.href = '/payment/eps-gateway?orderId=' + orderId + '&amount=' + totalsSnap.payNow + '&name=' + encodeURIComponent(formData.get('name'));
+            });
           });
         }
 

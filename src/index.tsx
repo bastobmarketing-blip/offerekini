@@ -8,6 +8,10 @@ import { getCustomerByPhone, customers } from './data/customers'
 import { merchants, getMerchantById } from './data/merchants'
 import { getSettlementsByMerchant } from './data/settlements'
 
+// ---- EPS Payment Gateway ----
+import { initiateEpsPayment, verifyEpsPayment } from './utils/epsService'
+import { EpsGatewayPage } from './pages/customer/EpsGatewayPage'
+
 // ---- Customer pages ----
 import { HomePage } from './pages/customer/HomePage'
 import { ProductsPage } from './pages/customer/ProductsPage'
@@ -62,8 +66,8 @@ app.use('*', async (c, next) => {
   const host = (c.req.header('host') || '').toLowerCase()
   const path = c.req.path
 
-  // Skip static assets
-  if (path.startsWith('/static/')) {
+  // Skip static assets & payment endpoints from subdomain redirecting
+  if (path.startsWith('/static/') || path.startsWith('/api/') || path.startsWith('/payment/')) {
     return await next()
   }
 
@@ -89,6 +93,80 @@ app.use('*', async (c, next) => {
 
   await next()
 })
+
+// ==========================================================================
+// EPS PAYMENT GATEWAY API & ROUTES
+// ==========================================================================
+app.post('/api/eps/initiate', async (c) => {
+  try {
+    const body = await c.req.json()
+    const host = c.req.header('host') || 'offerekini.com'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+
+    const result = await initiateEpsPayment({
+      orderId: body.orderId || `OK-${Math.floor(10000 + Math.random() * 89999)}`,
+      amount: Number(body.amount) || 60,
+      customerName: body.customerName || 'Customer',
+      customerPhone: body.customerPhone || '01700000000',
+      customerAddress: body.address || 'Dhaka',
+      district: body.district || 'Dhaka',
+      area: body.area || 'Dhaka',
+      baseUrl,
+    })
+
+    return c.json(result)
+  } catch (err: any) {
+    console.error('EPS initiate error:', err)
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.get('/payment/eps-gateway', (c) => {
+  const trxId = c.req.query('trxId') || `TRX-${Date.now()}`
+  const orderId = c.req.query('orderId') || 'OK-1001'
+  const amount = Number(c.req.query('amount')) || 60
+  const customerName = c.req.query('name') || 'Customer'
+  return c.html(<EpsGatewayPage trxId={trxId} orderId={orderId} amount={amount} customerName={customerName} />)
+})
+
+app.get('/payment/success', async (c) => {
+  const orderId = c.req.query('orderId') || ''
+  const trxId = c.req.query('trxId') || ''
+  await verifyEpsPayment(trxId)
+  return c.html(
+    <html>
+      <head><title>EPS Payment Successful</title></head>
+      <body>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              var pending = null;
+              try { pending = JSON.parse(localStorage.getItem('offerkini_pending_order') || 'null'); } catch(e){}
+              if (pending) {
+                pending.paymentStatus = 'advance_paid';
+                pending.epsTrxId = '${trxId}';
+                localStorage.setItem('offerkini_last_order', JSON.stringify(pending));
+                var existing = [];
+                try { existing = JSON.parse(localStorage.getItem('offerkini_orders') || '[]'); } catch(e){}
+                existing.unshift(pending);
+                localStorage.setItem('offerkini_orders', JSON.stringify(existing));
+                localStorage.removeItem('offerkini_pending_order');
+              }
+              if (window.OK && window.OK.clearCart) {
+                window.OK.clearCart();
+              }
+              window.location.href = '/order-success';
+            })();
+          `
+        }} />
+      </body>
+    </html>
+  )
+})
+
+app.get('/payment/fail', (c) => c.redirect('/checkout?error=payment_failed'))
+app.get('/payment/cancel', (c) => c.redirect('/checkout?error=payment_cancelled'))
 
 // ==========================================================================
 // CUSTOMER ROUTES
