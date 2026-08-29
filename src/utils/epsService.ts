@@ -67,7 +67,7 @@ export class EPSGateway {
   constructor(config: EPSConfig) {
     this.config = {
       ...config,
-      sandbox: config.sandbox ?? true,
+      sandbox: config.sandbox ?? false,
       timeout: config.timeout ?? 30000,
     }
   }
@@ -151,14 +151,14 @@ export class EPSGateway {
   }
 }
 
-// Global EPS gateway instance
+// Global EPS gateway instance configured with Merchant credentials
 const defaultConfig: EPSConfig = {
-  username: process.env.EPS_USERNAME || 'sandbox_user',
-  password: process.env.EPS_PASSWORD || 'sandbox_password',
-  hashKey: process.env.EPS_HASH_KEY || 'dGVzdF9oYXNoX2tleV9mb3JfZXBzX2dhdGV3YXk=',
-  merchantId: process.env.EPS_MERCHANT_ID || 'MCH-10024',
-  storeId: process.env.EPS_STORE_ID || 'STR-5001',
-  sandbox: process.env.EPS_SANDBOX !== 'false',
+  username: process.env.EPS_USERNAME || 'tazulcreations@gmail.com',
+  password: process.env.EPS_PASSWORD || 'IMrul24673@',
+  hashKey: process.env.EPS_HASH_KEY || 'FMUNISHOY2lWZXDH090VibeTech',
+  merchantId: process.env.EPS_MERCHANT_ID || 'e84dddfd-1431-443f-89db-3f6a8cf86599',
+  storeId: process.env.EPS_STORE_ID || 'cc84d576-9a02-4c91-91cf-198c68771b08',
+  sandbox: process.env.EPS_SANDBOX === 'true', // Defaults to Production mode
 }
 
 const eps = new EPSGateway(defaultConfig)
@@ -178,37 +178,35 @@ export async function initiateEpsPayment(params: InitiateOrderPaymentParams) {
   const trxId = generateTransactionId()
 
   try {
-    if (process.env.EPS_USERNAME && process.env.EPS_PASSWORD) {
-      const response = await eps.initializePayment({
-        customerOrderId: params.orderId,
-        merchantTransactionId: trxId,
-        totalAmount: params.amount,
-        successUrl: `${params.baseUrl}/payment/success?trxId=${trxId}&orderId=${params.orderId}`,
-        failUrl: `${params.baseUrl}/payment/fail?trxId=${trxId}&orderId=${params.orderId}`,
-        cancelUrl: `${params.baseUrl}/payment/cancel?trxId=${trxId}&orderId=${params.orderId}`,
-        customerName: params.customerName || 'Customer',
-        customerEmail: `${params.customerPhone.replace(/[^0-9]/g, '')}@offerekini.com`,
-        customerAddress: params.customerAddress || 'Dhaka',
-        customerCity: params.area || 'Dhaka',
-        customerState: params.district || 'Dhaka',
-        customerPostcode: '1200',
-        customerPhone: params.customerPhone,
-        productName: `Offerekini Advance Payment for Order ${params.orderId}`,
-      })
+    const response = await eps.initializePayment({
+      customerOrderId: params.orderId,
+      merchantTransactionId: trxId,
+      totalAmount: params.amount,
+      successUrl: `${params.baseUrl}/payment/success?trxId=${trxId}&orderId=${params.orderId}`,
+      failUrl: `${params.baseUrl}/payment/fail?trxId=${trxId}&orderId=${params.orderId}`,
+      cancelUrl: `${params.baseUrl}/payment/cancel?trxId=${trxId}&orderId=${params.orderId}`,
+      customerName: params.customerName || 'Customer',
+      customerEmail: `${params.customerPhone.replace(/[^0-9]/g, '')}@offerekini.com`,
+      customerAddress: params.customerAddress || 'Dhaka',
+      customerCity: params.area || 'Dhaka',
+      customerState: params.district || 'Dhaka',
+      customerPostcode: '1200',
+      customerPhone: params.customerPhone,
+      productName: `Offerekini Advance Payment for Order ${params.orderId}`,
+    })
 
-      if (response && response.RedirectURL) {
-        return {
-          success: true,
-          trxId,
-          redirectUrl: response.RedirectURL,
-        }
+    if (response && response.RedirectURL) {
+      return {
+        success: true,
+        trxId,
+        redirectUrl: response.RedirectURL,
       }
     }
-  } catch (error) {
-    console.error('EPS Gateway API error, using EPS Gateway Simulator:', error)
+  } catch (error: any) {
+    console.error('EPS Production Gateway API error:', error?.message || error)
   }
 
-  // EPS Gateway Simulation Page URL
+  // EPS Gateway Simulation Page URL fallback
   const demoGatewayUrl = `${params.baseUrl}/payment/eps-gateway?trxId=${trxId}&orderId=${params.orderId}&amount=${params.amount}&name=${encodeURIComponent(params.customerName)}`
   return {
     success: true,
@@ -218,13 +216,11 @@ export async function initiateEpsPayment(params: InitiateOrderPaymentParams) {
 }
 
 export async function verifyEpsPayment(trxId: string) {
-  if (process.env.EPS_USERNAME) {
-    try {
-      const res = await eps.verifyPayment(trxId)
-      return res && res.Status === 'Success'
-    } catch (e) {
-      console.error('EPS Verify Error:', e)
-    }
+  try {
+    const res = await eps.verifyPayment(trxId)
+    return res && res.Status === 'Success'
+  } catch (e) {
+    console.error('EPS Verify Error:', e)
   }
   return true
 }
