@@ -40,147 +40,140 @@ export const FocusKingLandingPage: FC = () => {
           <div class="absolute -bottom-32 -right-32 w-[480px] h-[480px] bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
           <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-            <div class="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-              
-              {/* Left Column: Headline & Value Prop */}
-              <div class="lg:col-span-7 text-center lg:text-left space-y-5">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center space-y-6">
+            
+            {/* Brand Tagline Pill */}
+            <div>
+              <div class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500/20 via-blue-500/20 to-amber-500/15 border border-sky-400/30 text-sky-300 px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/10">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400 animate-pulse"></span>
+                প্রতিদিন মাত্র ৳30 ইনভেস্ট করুন আপনার Focus Routine-এ।
+              </div>
+            </div>
+
+            {/* Main Product Title */}
+            <div>
+              <div class="inline-flex items-center gap-2 text-amber-400 font-extrabold text-sm sm:text-base uppercase tracking-wider mb-1.5">
+                <span>👑 KING™</span>
+                <span class="text-sky-300 font-medium">· Sharper Mind, Brighter Days</span>
+              </div>
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
+                FOCUS <span class="bg-gradient-to-r from-sky-400 via-sky-300 to-blue-200 bg-clip-text text-transparent">KING</span>
+                <span class="text-amber-400 text-3xl sm:text-4xl lg:text-5xl ml-2 font-black">— 500g</span>
+              </h1>
+            </div>
+
+            {/* PRODUCT PHOTO SHOWCASE (Positioned ABOVE Subtitle & Features) */}
+            <div class="relative max-w-xs sm:max-w-sm mx-auto my-4">
+              {/* Glowing electric cyan halo */}
+              <div class="absolute inset-0 bg-gradient-to-tr from-sky-500 to-blue-600 rounded-3xl blur-2xl opacity-40 transform scale-95"></div>
+
+              <div class="relative bg-gradient-to-b from-slate-900/95 to-[#0b2440]/95 border-2 border-sky-400/40 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl text-center overflow-hidden">
                 
-                {/* Brand Tagline Pill */}
-                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500/20 via-blue-500/20 to-amber-500/15 border border-sky-400/30 text-sky-300 px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/10">
-                  <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400 animate-pulse"></span>
-                  প্রতিদিন মাত্র ৳30 ইনভেস্ট করুন আপনার Focus Routine-এ।
-                </div>
-
-                {/* Main Product Title */}
-                <div>
-                  <div class="inline-flex items-center gap-2 text-amber-400 font-extrabold text-sm sm:text-base uppercase tracking-wider mb-1">
-                    <span>👑 KING™</span>
-                    <span class="text-sky-300 font-medium">· Sharper Mind, Brighter Days</span>
-                  </div>
-                  <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white">
-                    FOCUS <span class="bg-gradient-to-r from-sky-400 via-sky-300 to-blue-200 bg-clip-text text-transparent">KING</span>
-                    <span class="text-amber-400 text-3xl sm:text-4xl lg:text-5xl ml-2 font-black">— 500g</span>
-                  </h1>
-                </div>
-
-                {/* Subtitle */}
-                <p class="text-sky-100/90 text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
-                  পড়াশোনা হোক বা কাজ—প্রতিদিনের <strong class="text-white font-bold">Focus, Energy & Productivity Routine</strong>-এর জন্য Daily Support।
-                </p>
-
-                {/* 4 Authentic Jar Pillars */}
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 max-w-xl mx-auto lg:mx-0">
-                  <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
-                    <span class="text-lg block">🎯</span>
-                    <span class="text-[11px] font-bold text-sky-200 block mt-0.5">BETTER FOCUS</span>
-                  </div>
-                  <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
-                    <span class="text-lg block">⚡</span>
-                    <span class="text-[11px] font-bold text-sky-200 block mt-0.5">MORE ENERGY</span>
-                  </div>
-                  <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
-                    <span class="text-lg block">⚙️</span>
-                    <span class="text-[11px] font-bold text-sky-200 block mt-0.5">PRODUCTIVITY</span>
-                  </div>
-                  <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
-                    <span class="text-lg block">🌿</span>
-                    <span class="text-[11px] font-bold text-sky-200 block mt-0.5">NATURAL SUPPORT</span>
-                  </div>
-                </div>
-
-                {/* Two Price Cards: 500g & 1KG Mega Deal */}
-                <div class="pt-3 grid sm:grid-cols-2 gap-3 max-w-xl mx-auto lg:mx-0">
-                  {/* Card 1: 500g */}
-                  <div class="bg-gradient-to-br from-slate-900/90 to-[#0c2340]/90 border border-sky-500/40 p-3.5 rounded-2xl text-left shadow-lg relative">
-                    <div class="text-[11px] text-sky-300 font-bold uppercase tracking-wider">500g রেগুলার প্যাক</div>
-                    <div class="flex items-baseline gap-2 mt-0.5">
-                      <span class="text-2xl font-black text-white">৳890</span>
-                      <span class="text-xs text-gray-400 line-through">৳1,000</span>
-                    </div>
-                    <div class="text-[11px] text-sky-200 mt-1 font-medium">
-                      ডেলিভারি: ঢাকা ৳60 | বাইরে ৳100
-                    </div>
-                  </div>
-
-                  {/* Card 2: 1KG Mega Saver Deal */}
-                  <div class="bg-gradient-to-br from-[#122b4d] to-[#0d223d] border-2 border-amber-400 p-3.5 rounded-2xl text-left shadow-xl relative overflow-hidden">
-                    <span class="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-bl-lg uppercase">
-                      🔥 সেরা অফার
-                    </span>
-                    <div class="text-[11px] text-amber-300 font-bold uppercase tracking-wider">1 KG মেগা সেভার</div>
-                    <div class="flex items-baseline gap-2 mt-0.5">
-                      <span class="text-2xl font-black text-amber-400">৳1,390</span>
-                      <span class="text-xs text-gray-400 line-through">৳1,950</span>
-                    </div>
-                    <div class="text-[11px] text-emerald-300 font-extrabold mt-1 flex items-center gap-1">
-                      <span>🚀 ডেলিভারি ফ্রি</span>
-                      <span>· ৳550+ সেভ!</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Primary CTA Button */}
-                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <a
-                    href="#order-section"
-                    class="w-full sm:w-auto bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base sm:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] text-center inline-flex items-center justify-center gap-2 group"
-                  >
-                    <span>🟢 এখনই অফারে অর্ডার করুন</span>
-                    <span class="transition-transform group-hover:translate-x-1 font-black">→</span>
-                  </a>
-                </div>
-
-                <div class="flex items-center justify-center lg:justify-start gap-3 pt-1 text-xs text-sky-200/80">
-                  <span class="bg-sky-500/20 text-sky-300 border border-sky-400/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                    NATURAL · SAFE · EFFECTIVE
+                {/* Top Badges */}
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                    👑 ORIGINAL
                   </span>
-                  <span>*দৈনিক খরচ নির্ধারিত serving size-এর ওপর নির্ভরশীল।</span>
+                  <span class="bg-sky-500/30 text-sky-200 border border-sky-400/40 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                    500 g Tub
+                  </span>
                 </div>
-              </div>
 
-              {/* Right Column: Real Product Photo Showcase */}
-              <div class="lg:col-span-5 relative flex justify-center">
-                <div class="relative w-full max-w-sm sm:max-w-md">
-                  {/* Glowing electric cyan halo */}
-                  <div class="absolute inset-0 bg-gradient-to-tr from-sky-500 to-blue-600 rounded-3xl blur-2xl opacity-40 transform scale-95"></div>
+                {/* Actual Product Photo */}
+                <div class="relative rounded-2xl overflow-hidden bg-white/5 p-2 border border-sky-500/20">
+                  <img
+                    src="/static/images/products/focus-king.jpg"
+                    alt="Focus King 500g - Natural Support for Focus & Productivity"
+                    class="w-full h-auto object-contain max-h-[300px] sm:max-h-[340px] mx-auto rounded-xl drop-shadow-[0_15px_35px_rgba(14,165,233,0.35)] transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
 
-                  <div class="relative bg-gradient-to-b from-slate-900/95 to-[#0b2440]/95 border-2 border-sky-400/40 rounded-3xl p-5 shadow-2xl backdrop-blur-xl text-center overflow-hidden">
-                    
-                    {/* Top Badges */}
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                      <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                        👑 ORIGINAL
-                      </span>
-                      <span class="bg-sky-500/30 text-sky-200 border border-sky-400/40 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                        500 g Tub
-                      </span>
-                    </div>
-
-                    {/* Actual Product Photo */}
-                    <div class="relative rounded-2xl overflow-hidden bg-white/5 p-2 border border-sky-500/20">
-                      <img
-                        src="/static/images/products/focus-king.jpg"
-                        alt="Focus King 500g - Natural Support for Focus & Productivity"
-                        class="w-full h-auto object-contain max-h-[340px] mx-auto rounded-xl drop-shadow-[0_15px_35px_rgba(14,165,233,0.35)] transition-transform duration-500 hover:scale-105"
-                      />
-                    </div>
-
-                    {/* Feature badges below photo */}
-                    <div class="grid grid-cols-2 gap-2 mt-4 text-[11px] font-bold text-sky-100">
-                      <div class="bg-sky-900/60 p-2 rounded-xl border border-sky-500/30 flex items-center justify-center gap-1.5">
-                        <i class="fas fa-brain text-sky-300"></i>
-                        <span>Sharper Mind</span>
-                      </div>
-                      <div class="bg-sky-900/60 p-2 rounded-xl border border-sky-500/30 flex items-center justify-center gap-1.5">
-                        <i class="fas fa-sun text-amber-400"></i>
-                        <span>Brighter Days</span>
-                      </div>
-                    </div>
+                {/* Feature badges below photo */}
+                <div class="grid grid-cols-2 gap-2 mt-3 text-[11px] font-bold text-sky-100">
+                  <div class="bg-sky-900/60 p-2 rounded-xl border border-sky-500/30 flex items-center justify-center gap-1.5">
+                    <i class="fas fa-brain text-sky-300"></i>
+                    <span>Sharper Mind</span>
+                  </div>
+                  <div class="bg-sky-900/60 p-2 rounded-xl border border-sky-500/30 flex items-center justify-center gap-1.5">
+                    <i class="fas fa-sun text-amber-400"></i>
+                    <span>Brighter Days</span>
                   </div>
                 </div>
               </div>
+            </div>
 
+            {/* Subtitle (Below the product image) */}
+            <p class="text-sky-100/90 text-base sm:text-lg leading-relaxed max-w-xl mx-auto font-medium">
+              পড়াশোনা হোক বা কাজ—প্রতিদিনের <strong class="text-white font-bold">Focus, Energy & Productivity Routine</strong>-এর জন্য Daily Support।
+            </p>
+
+            {/* 4 Authentic Jar Pillars */}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 max-w-xl mx-auto">
+              <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
+                <span class="text-lg block">🎯</span>
+                <span class="text-[11px] font-bold text-sky-200 block mt-0.5">BETTER FOCUS</span>
+              </div>
+              <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
+                <span class="text-lg block">⚡</span>
+                <span class="text-[11px] font-bold text-sky-200 block mt-0.5">MORE ENERGY</span>
+              </div>
+              <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
+                <span class="text-lg block">⚙️</span>
+                <span class="text-[11px] font-bold text-sky-200 block mt-0.5">PRODUCTIVITY</span>
+              </div>
+              <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
+                <span class="text-lg block">🌿</span>
+                <span class="text-[11px] font-bold text-sky-200 block mt-0.5">NATURAL SUPPORT</span>
+              </div>
+            </div>
+
+            {/* Two Price Cards: 500g & 1KG Mega Deal */}
+            <div class="pt-3 grid sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left">
+              {/* Card 1: 500g */}
+              <div class="bg-gradient-to-br from-slate-900/90 to-[#0c2340]/90 border border-sky-500/40 p-3.5 rounded-2xl shadow-lg relative">
+                <div class="text-[11px] text-sky-300 font-bold uppercase tracking-wider">500g রেগুলার প্যাক</div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span class="text-2xl font-black text-white">৳890</span>
+                  <span class="text-xs text-gray-400 line-through">৳1,000</span>
+                </div>
+                <div class="text-[11px] text-sky-200 mt-1 font-medium">
+                  ডেলিভারি: ঢাকা ৳60 | বাইরে ৳100
+                </div>
+              </div>
+
+              {/* Card 2: 1KG Mega Saver Deal */}
+              <div class="bg-gradient-to-br from-[#122b4d] to-[#0d223d] border-2 border-amber-400 p-3.5 rounded-2xl shadow-xl relative overflow-hidden">
+                <span class="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-bl-lg uppercase">
+                  🔥 সেরা অফার
+                </span>
+                <div class="text-[11px] text-amber-300 font-bold uppercase tracking-wider">1 KG মেগা সেভার</div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span class="text-2xl font-black text-amber-400">৳1,390</span>
+                  <span class="text-xs text-gray-400 line-through">৳1,950</span>
+                </div>
+                <div class="text-[11px] text-emerald-300 font-extrabold mt-1 flex items-center gap-1">
+                  <span>🚀 ডেলিভারি ফ্রি</span>
+                  <span>· ৳550+ সেভ!</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Primary CTA Button */}
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="#order-section"
+                class="w-full sm:w-auto bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base sm:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] text-center inline-flex items-center justify-center gap-2 group"
+              >
+                <span>🟢 এখনই অফারে অর্ডার করুন</span>
+                <span class="transition-transform group-hover:translate-x-1 font-black">→</span>
+              </a>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 pt-1 text-xs text-sky-200/80">
+              <span class="bg-sky-500/20 text-sky-300 border border-sky-400/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                NATURAL · SAFE · EFFECTIVE
+              </span>
+              <span>*দৈনিক খরচ নির্ধারিত serving size-এর ওপর নির্ভরশীল।</span>
             </div>
           </div>
         </section>
