@@ -23,8 +23,8 @@ const DISTRICTS = [
 export const FocusKingLandingPage: FC = () => {
   return (
     <CustomerLayout
-      title="Focus King — 500g | Daily Focus, Energy & Productivity Routine Support"
-      description="প্রতিদিন মাত্র ৳30 ইনভেস্ট করুন আপনার Focus Routine-এ। 500g Focus King মাত্র ৳900। ক্যাশ অন ডেলিভারি সুবিধা রয়েছে।"
+      title="Focus King — 500g & 1KG | Daily Focus, Energy & Productivity Routine Support"
+      description="প্রতিদিন মাত্র ৳30 ইনভেস্ট করুন আপনার Focus Routine-এ। 500g Focus King মাত্র ৳890 (ডেলিভারি: ঢাকা ৳60, বাইরে ৳100)। আর মাত্র ৳500 যোগ করলেই পাবেন 1 KG মাত্র ৳1,390-তে সাথে ডেলিভারি চার্জ সম্পূর্ণ ফ্রি (৳550+ সেভ)!"
       showHeader={false}
       showFooter={false}
       showMobileNav={false}
@@ -69,7 +69,7 @@ export const FocusKingLandingPage: FC = () => {
                   পড়াশোনা হোক বা কাজ—প্রতিদিনের <strong class="text-white font-bold">Focus, Energy & Productivity Routine</strong>-এর জন্য Daily Support।
                 </p>
 
-                {/* Authentic Jar Pillars matching image */}
+                {/* 4 Authentic Jar Pillars */}
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 max-w-xl mx-auto lg:mx-0">
                   <div class="bg-sky-950/60 border border-sky-400/20 rounded-xl p-2.5 text-center backdrop-blur-sm">
                     <span class="text-lg block">🎯</span>
@@ -89,22 +89,44 @@ export const FocusKingLandingPage: FC = () => {
                   </div>
                 </div>
 
-                {/* Price Box & CTA Button */}
-                <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <div class="bg-gradient-to-br from-slate-900/90 to-[#0c2340]/90 border border-sky-500/40 px-5 py-3 rounded-2xl text-center sm:text-left shadow-lg">
-                    <div class="text-xs text-sky-300 font-bold uppercase tracking-wider">মাত্র</div>
-                    <div class="flex items-baseline gap-2">
-                      <span class="text-3xl font-black text-amber-400">৳900</span>
-                      <span class="text-sm text-gray-400 line-through">৳1,000</span>
+                {/* Two Price Cards: 500g & 1KG Mega Deal */}
+                <div class="pt-3 grid sm:grid-cols-2 gap-3 max-w-xl mx-auto lg:mx-0">
+                  {/* Card 1: 500g */}
+                  <div class="bg-gradient-to-br from-slate-900/90 to-[#0c2340]/90 border border-sky-500/40 p-3.5 rounded-2xl text-left shadow-lg relative">
+                    <div class="text-[11px] text-sky-300 font-bold uppercase tracking-wider">500g রেগুলার প্যাক</div>
+                    <div class="flex items-baseline gap-2 mt-0.5">
+                      <span class="text-2xl font-black text-white">৳890</span>
+                      <span class="text-xs text-gray-400 line-through">৳1,000</span>
                     </div>
-                    <div class="text-[11px] text-sky-300 font-extrabold mt-0.5">প্রায় ৳30/day*</div>
+                    <div class="text-[11px] text-sky-200 mt-1 font-medium">
+                      ডেলিভারি: ঢাকা ৳60 | বাইরে ৳100
+                    </div>
                   </div>
 
+                  {/* Card 2: 1KG Mega Saver Deal */}
+                  <div class="bg-gradient-to-br from-[#122b4d] to-[#0d223d] border-2 border-amber-400 p-3.5 rounded-2xl text-left shadow-xl relative overflow-hidden">
+                    <span class="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-bl-lg uppercase">
+                      🔥 সেরা অফার
+                    </span>
+                    <div class="text-[11px] text-amber-300 font-bold uppercase tracking-wider">1 KG মেগা সেভার</div>
+                    <div class="flex items-baseline gap-2 mt-0.5">
+                      <span class="text-2xl font-black text-amber-400">৳1,390</span>
+                      <span class="text-xs text-gray-400 line-through">৳1,950</span>
+                    </div>
+                    <div class="text-[11px] text-emerald-300 font-extrabold mt-1 flex items-center gap-1">
+                      <span>🚀 ডেলিভারি ফ্রি</span>
+                      <span>· ৳550+ সেভ!</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary CTA Button */}
+                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                   <a
                     href="#order-section"
                     class="w-full sm:w-auto bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base sm:text-lg px-8 py-4 rounded-2xl shadow-xl shadow-amber-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] text-center inline-flex items-center justify-center gap-2 group"
                   >
-                    <span>🟢 এখনই অর্ডার করুন</span>
+                    <span>🟢 এখনই অফারে অর্ডার করুন</span>
                     <span class="transition-transform group-hover:translate-x-1 font-black">→</span>
                   </a>
                 </div>
@@ -311,40 +333,67 @@ export const FocusKingLandingPage: FC = () => {
 
 
         {/* ===================================================================
-            04. 500g = প্রায় ৳30/day VALUE BREAKDOWN SECTION
+            04. VALUE BREAKDOWN SECTION (500g ৳890 vs 1 KG ৳1390 Mega Saver)
            =================================================================== */}
         <section class="py-14 sm:py-20 bg-gradient-to-b from-sky-50/80 via-white to-white">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
             
             <div class="bg-white border-2 border-sky-300 rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
               <div class="inline-flex items-center gap-1.5 bg-gradient-to-r from-sky-600 to-blue-700 text-white text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full mb-4 shadow-sm">
-                <span>👑</span> DAILY ROUTINE VALUE
+                <span>👑</span> DAILY ROUTINE VALUE & SAVINGS
               </div>
 
               <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mb-3">
                 একদিনের জন্য নয়—Daily Routine-এর জন্য।
               </h2>
 
-              {/* Price Highlight Banner */}
-              <div class="my-6 py-6 px-4 bg-gradient-to-r from-[#06182c] via-[#0a2540] to-[#06182c] text-white rounded-2xl shadow-xl max-w-xl mx-auto border border-sky-500/30">
-                <p class="text-xs text-sky-300 font-bold uppercase tracking-wider">500g Focus King</p>
-                <div class="text-4xl sm:text-5xl font-black text-amber-400 my-1">
-                  ৳900
-                </div>
-                <div class="inline-block bg-sky-500 text-white font-extrabold text-sm sm:text-base px-5 py-1.5 rounded-full mt-1 shadow-sm">
-                  প্রায় ৳30 / Day
-                </div>
-              </div>
-
-              <p class="text-slate-700 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-8 font-medium">
+              <p class="text-slate-600 text-sm sm:text-base max-w-xl mx-auto mb-6">
                 এক কাপ চা/কফির খরচের কাছাকাছি বাজেটে আপনার Daily Focus & Productivity Routine-এ একটি নতুন Support যোগ করুন।
               </p>
+
+              {/* Comparison Boxes: 500g vs 1KG Mega Deal */}
+              <div class="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto my-6 text-left">
+                
+                {/* 500g Box */}
+                <div class="bg-gradient-to-br from-[#06182c] to-[#0c2340] text-white p-5 rounded-2xl border border-sky-500/30 relative">
+                  <span class="text-xs text-sky-300 font-bold uppercase">500g Focus King</span>
+                  <div class="text-3xl font-black text-white my-1">
+                    ৳890
+                  </div>
+                  <div class="inline-block bg-sky-500/30 text-sky-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    প্রায় ৳30 / Day
+                  </div>
+                  <p class="text-xs text-sky-200/80 mt-3 pt-3 border-t border-sky-800/40">
+                    ডেলিভারি চার্জ: ঢাকা ৳60 | ঢাকার বাইরে ৳100
+                  </p>
+                </div>
+
+                {/* 1KG Box */}
+                <div class="bg-gradient-to-br from-[#0c2847] to-[#091e36] text-white p-5 rounded-2xl border-2 border-amber-400 relative shadow-lg">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-amber-400 font-black uppercase">১ কেজি (1 KG) মেগা প্যাক</span>
+                    <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+                      ৳550+ সেভ!
+                    </span>
+                  </div>
+                  <div class="text-3xl font-black text-amber-400 my-1">
+                    ৳1,390
+                  </div>
+                  <div class="inline-block bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full">
+                    🚀 ডেলিভারি চার্জ সম্পূর্ণ ফ্রি!
+                  </div>
+                  <p class="text-xs text-amber-200/90 mt-3 pt-3 border-t border-sky-800/40 font-medium">
+                    মাত্র ৳500 যোগ করে দ্বিগুণ ১ কেজি পান এবং ডেলিভারি চার্জও ফ্রি!
+                  </p>
+                </div>
+
+              </div>
 
               <a
                 href="#order-section"
                 class="bg-gradient-to-r from-sky-600 via-blue-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-black text-base sm:text-lg px-8 py-4 rounded-2xl shadow-lg shadow-sky-600/25 transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.02]"
               >
-                <span>🟢 Focus King অর্ডার করুন</span>
+                <span>🟢 সেরা অফারে Focus King অর্ডার করুন</span>
                 <span class="font-black">→</span>
               </a>
             </div>
@@ -398,7 +447,7 @@ export const FocusKingLandingPage: FC = () => {
                     ★★★★★
                   </div>
                   <p class="text-slate-700 text-sm leading-relaxed italic mb-4 font-medium">
-                    “ফ্রিল্যান্সিংয়ের লেট নাইট শিফটে এনার্জি ও মেন্টাল ক্লারিটি বজায় রাখতে আমি প্রতিদিন এটি ব্যবহার করি। বাজেটের দিক থেকেও অনেক সাশ্রয়ী।”
+                    “ফ্রিল্যান্সিংয়ের লেট নাইট শিফটে এনার্জি ও মেন্টাল ক্লারিটি বজায় রাখতে আমি প্রতিদিন এটি ব্যবহার করি। ১ কেজির প্যাকটা নিয়েছি, ডেলিভারিও ফ্রি পেয়েছি।”
                   </p>
                 </div>
                 <div class="pt-3 border-t border-slate-100 flex items-center gap-3">
@@ -419,7 +468,7 @@ export const FocusKingLandingPage: FC = () => {
                     ★★★★★
                   </div>
                   <p class="text-slate-700 text-sm leading-relaxed italic mb-4 font-medium">
-                    “বিজনেস এবং প্রতিদিনের কাজের প্রেসারে উৎপাদনশীলতা ধরে রাখতে এটি এখন আমার ডেইলি রুটিনের অংশ। দ্রুত ডেলিভারিও পেয়েছি।”
+                    “বিজনেস এবং প্রতিদিনের কাজের প্রেসারে উৎপাদনশীলতা ধরে রাখতে এটি এখন আমার ডেইলি রুটিনের অংশ। খুব দ্রুত ডেলিভারি পেয়েছি।”
                   </p>
                 </div>
                 <div class="pt-3 border-t border-slate-100 flex items-center gap-3">
@@ -502,76 +551,161 @@ export const FocusKingLandingPage: FC = () => {
                 আপনার Daily Focus Routine শুরু করুন
               </h2>
               <p class="text-sky-200/80 text-sm sm:text-base font-medium">
-                নিচের ফর্মে সঠিক তথ্য দিয়ে ক্যাশ অন ডেলিভারিতে অর্ডার সম্পন্ন করুন।
+                প্যাকেজ নির্বাচন করে নিচের ফর্মে সঠিক তথ্য দিয়ে অর্ডার সম্পন্ন করুন।
               </p>
             </div>
 
             <div class="grid lg:grid-cols-12 gap-8 items-start">
               
-              {/* Left Box: Product Summary */}
-              <div class="lg:col-span-5 bg-gradient-to-b from-[#0c243e] to-[#08182b] border-2 border-sky-400/30 rounded-3xl p-6 shadow-2xl space-y-6">
+              {/* Left Box: Product Summary & Offer Highlights */}
+              <div class="lg:col-span-5 bg-gradient-to-b from-[#0c243e] to-[#08182b] border-2 border-sky-400/30 rounded-3xl p-6 shadow-2xl space-y-5">
                 
                 {/* Product Photo inside Form Card */}
                 <div class="rounded-2xl overflow-hidden bg-slate-900/60 p-3 border border-sky-500/20 text-center">
                   <img
                     src="/static/images/products/focus-king.jpg"
                     alt="Focus King 500g"
-                    class="w-48 h-auto object-contain mx-auto drop-shadow-md"
+                    class="w-44 h-auto object-contain mx-auto drop-shadow-md"
                   />
                   <div class="mt-2 text-xs font-black text-amber-400">
-                    👑 KING™ FOCUS KING — 500g
+                    👑 KING™ FOCUS KING
+                  </div>
+                  <p class="text-[11px] text-sky-200 font-medium">Natural Support for Focus & Productivity</p>
+                </div>
+
+                {/* Offer Packages Summary Box */}
+                <div class="space-y-2">
+                  <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-sky-500/30 flex items-center justify-between">
+                    <div>
+                      <span class="text-[11px] text-sky-300 block font-bold uppercase">500g রেগুলার প্যাক</span>
+                      <span class="text-xl font-black text-white">৳890</span>
+                    </div>
+                    <span class="text-xs text-sky-200 font-semibold text-right">
+                      ডেলিভারি: ঢাকা ৳60<br />ঢাকার বাইরে ৳100
+                    </span>
+                  </div>
+
+                  <div class="bg-gradient-to-r from-[#113158] to-[#0d2747] p-3.5 rounded-2xl border-2 border-amber-400/80 flex items-center justify-between">
+                    <div>
+                      <span class="text-[11px] text-amber-300 block font-black uppercase">১ কেজি (1 KG) মেগা অফার 🔥</span>
+                      <span class="text-xl font-black text-amber-400">৳1,390</span>
+                      <span class="text-[11px] text-gray-400 line-through ml-1">৳1,950</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="bg-emerald-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full block">
+                        ডেলিভারি ফ্রি!
+                      </span>
+                      <span class="text-[11px] text-amber-300 font-bold block mt-0.5">
+                        ৳550+ সেভ!
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="bg-slate-900/90 p-4 rounded-2xl border border-sky-500/30 flex items-center justify-between">
-                  <div>
-                    <span class="text-xs text-sky-300 block font-bold uppercase">অফার মূল্য</span>
-                    <span class="text-2xl font-black text-amber-400">৳900</span>
-                    <span class="text-xs text-gray-400 line-through ml-2">৳1,000</span>
-                  </div>
-                  <span class="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-xs font-black px-3 py-1 rounded-full">
-                    ১০% ছাড়
-                  </span>
-                </div>
-
+                {/* Benefits Checklist */}
                 <div>
-                  <h4 class="text-xs font-bold text-sky-200 uppercase tracking-wider mb-3">আপনি পাচ্ছেন:</h4>
-                  <ul class="space-y-2.5 text-sm text-sky-100 font-medium">
+                  <h4 class="text-xs font-bold text-sky-200 uppercase tracking-wider mb-2.5">আপনি পাচ্ছেন:</h4>
+                  <ul class="space-y-2 text-xs sm:text-sm text-sky-100 font-medium">
                     <li class="flex items-center gap-2">
                       <i class="fas fa-check-circle text-sky-400"></i>
-                      <span><strong>500g Focus King</strong> (Full Jar)</span>
+                      <span>100% Genuine Focus King</span>
                     </li>
                     <li class="flex items-center gap-2">
                       <i class="fas fa-check-circle text-sky-400"></i>
-                      <span>Daily Focus Support</span>
+                      <span>Daily Focus, Energy & Productivity Support</span>
                     </li>
                     <li class="flex items-center gap-2">
                       <i class="fas fa-check-circle text-sky-400"></i>
-                      <span>Energy Support</span>
-                    </li>
-                    <li class="flex items-center gap-2">
-                      <i class="fas fa-check-circle text-sky-400"></i>
-                      <span>Productivity Support</span>
+                      <span>Mental Clarity & Sharper Mind Routine</span>
                     </li>
                   </ul>
                 </div>
 
-                <div class="pt-3 border-t border-sky-800/50">
+                <div class="pt-2 border-t border-sky-800/50">
                   <div class="bg-sky-950/70 border border-sky-500/30 rounded-xl p-3 text-xs text-sky-200 flex items-center gap-2.5">
                     <i class="fas fa-hand-holding-dollar text-amber-400 text-lg"></i>
-                    <span><strong>Cash on Delivery Available:</strong> পণ্য হাতে পেয়ে টাকা পরিশোধ করার সুবিধা রয়েছে।</span>
+                    <span><strong>Cash on Delivery:</strong> সারাদেশে পণ্য হাতে পেয়ে টাকা পরিশোধের সুবিধা।</span>
                   </div>
                 </div>
               </div>
 
-              {/* Right Box: Order Form */}
+              {/* Right Box: Order Form with Package Selector */}
               <div class="lg:col-span-7 bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-sky-100">
                 <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-2 border-b border-slate-100 pb-3">
                   <i class="fas fa-cart-shopping text-sky-600"></i> 🛒 ORDER NOW (অর্ডার ফর্ম)
                 </h3>
 
                 <form id="fk-order-form" class="space-y-4">
-                  {/* Name */}
+                  
+                  {/* Step 1: Package Selector (500g vs 1KG vs 1.5KG) */}
+                  <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase mb-2 flex items-center justify-between">
+                      <span>প্যাকেজ নির্বাচন করুন <span class="text-red-500">*</span></span>
+                      <span class="text-[11px] text-amber-600 font-bold">১ কেজিতে ডেলিভারি ফ্রি!</span>
+                    </label>
+
+                    <div class="space-y-2.5">
+                      
+                      {/* Package Option 1: 500g */}
+                      <label class="fk-pkg-label flex items-center justify-between border-2 border-slate-200 bg-white rounded-2xl p-3.5 cursor-pointer transition-all hover:border-sky-300">
+                        <div class="flex items-center gap-3">
+                          <input type="radio" name="package" value="500g" class="fk-pkg-radio w-4 h-4 text-sky-600 focus:ring-sky-500" />
+                          <div>
+                            <div class="font-extrabold text-slate-900 text-sm">500 গ্রাম (১টি জার)</div>
+                            <div class="text-xs text-slate-500">ডেলিভারি: ঢাকা ৳60 | বাইরে ৳100</div>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <div class="font-black text-slate-900 text-base">৳890</div>
+                          <div class="text-[11px] text-slate-400 line-through">৳1,000</div>
+                        </div>
+                      </label>
+
+                      {/* Package Option 2: 1 KG (Mega Deal - Default Checked) */}
+                      <label class="fk-pkg-label flex items-center justify-between border-2 border-amber-400 bg-amber-50/60 rounded-2xl p-3.5 cursor-pointer transition-all relative overflow-hidden shadow-sm">
+                        <div class="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-bl-xl uppercase tracking-wider">
+                          🔥 সেরা অফার · ৳550+ সেভ!
+                        </div>
+                        <div class="flex items-center gap-3">
+                          <input type="radio" name="package" value="1kg" checked class="fk-pkg-radio w-4 h-4 text-amber-500 focus:ring-amber-400" />
+                          <div>
+                            <div class="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                              <span>১ কেজি (1 KG — ২টি জার)</span>
+                              <span class="bg-emerald-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">ফ্রি ডেলিভারি</span>
+                            </div>
+                            <div class="text-xs text-emerald-700 font-bold mt-0.5">
+                              মাত্র ৳500 যোগ করলেই দ্বিগুণ ১ কেজি!
+                            </div>
+                          </div>
+                        </div>
+                        <div class="text-right pt-2 sm:pt-0">
+                          <div class="font-black text-amber-600 text-lg">৳1,390</div>
+                          <div class="text-[11px] text-slate-400 line-through">৳1,950</div>
+                        </div>
+                      </label>
+
+                      {/* Package Option 3: 1.5 KG (Family Pack) */}
+                      <label class="fk-pkg-label flex items-center justify-between border-2 border-slate-200 bg-white rounded-2xl p-3.5 cursor-pointer transition-all hover:border-sky-300">
+                        <div class="flex items-center gap-3">
+                          <input type="radio" name="package" value="1.5kg" class="fk-pkg-radio w-4 h-4 text-sky-600 focus:ring-sky-500" />
+                          <div>
+                            <div class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                              <span>১.৫ কেজি (৩টি জার — ফ্যামিলি প্যাক)</span>
+                              <span class="bg-sky-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">ফ্রি ডেলিভারি</span>
+                            </div>
+                            <div class="text-xs text-sky-700 font-semibold">সর্বোচ্চ সাশ্রয়ী প্যাকেজ (৳৮০০+ সেভ)</div>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <div class="font-black text-slate-900 text-base">৳1,990</div>
+                          <div class="text-[11px] text-slate-400 line-through">৳2,850</div>
+                        </div>
+                      </label>
+
+                    </div>
+                  </div>
+
+                  {/* Customer Name */}
                   <div>
                     <label class="block text-xs font-black text-slate-700 uppercase mb-1">
                       আপনার নাম <span class="text-red-500">*</span>
@@ -630,30 +764,6 @@ export const FocusKingLandingPage: FC = () => {
                     ></textarea>
                   </div>
 
-                  {/* Quantity Selector */}
-                  <div>
-                    <label class="block text-xs font-black text-slate-700 uppercase mb-1">
-                      পরিমাণ (Quantity)
-                    </label>
-                    <div class="grid grid-cols-3 gap-3">
-                      <label class="fk-qty-label border-2 border-sky-600 bg-sky-50 rounded-xl p-2.5 text-center cursor-pointer transition-all">
-                        <input type="radio" name="quantity" value="1" checked class="hidden fk-qty-radio" />
-                        <span class="block text-xs font-bold text-slate-600">১টি জাড়</span>
-                        <span class="block text-sm font-black text-sky-800">৳900</span>
-                      </label>
-                      <label class="fk-qty-label border-2 border-slate-200 bg-white rounded-xl p-2.5 text-center cursor-pointer transition-all hover:border-sky-300">
-                        <input type="radio" name="quantity" value="2" class="hidden fk-qty-radio" />
-                        <span class="block text-xs font-bold text-slate-600">২টি জাড়</span>
-                        <span class="block text-sm font-black text-sky-800">৳1,800</span>
-                      </label>
-                      <label class="fk-qty-label border-2 border-slate-200 bg-white rounded-xl p-2.5 text-center cursor-pointer transition-all hover:border-sky-300">
-                        <input type="radio" name="quantity" value="3" class="hidden fk-qty-radio" />
-                        <span class="block text-xs font-bold text-slate-600">৩টি জাড়</span>
-                        <span class="block text-sm font-black text-sky-800">৳2,700</span>
-                      </label>
-                    </div>
-                  </div>
-
                   {/* Payment Method Option */}
                   <div>
                     <label class="block text-xs font-black text-slate-700 uppercase mb-1">
@@ -674,17 +784,28 @@ export const FocusKingLandingPage: FC = () => {
                   {/* Price Calculation Summary */}
                   <div class="bg-sky-50/70 rounded-2xl p-4 border border-sky-200 space-y-2 text-xs sm:text-sm">
                     <div class="flex justify-between text-slate-600 font-medium">
-                      <span>পণ্যের দাম (<span id="fk-summary-qty">1</span>টি Focus King 500g):</span>
-                      <span id="fk-summary-subtotal" class="font-bold text-slate-900">৳900</span>
+                      <span>নির্বাচিত প্যাকেজ:</span>
+                      <span id="fk-summary-pkg-name" class="font-extrabold text-slate-900">১ কেজি (1 KG — ২টি জার)</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600 font-medium">
+                      <span>পণ্যের দাম:</span>
+                      <span id="fk-summary-subtotal" class="font-bold text-slate-900">৳1,390</span>
                     </div>
                     <div class="flex justify-between text-slate-600 font-medium">
                       <span>ডেলিভারি চার্জ:</span>
-                      <span id="fk-summary-delivery" class="font-bold text-sky-700">৳60</span>
+                      <span id="fk-summary-delivery" class="font-black text-emerald-600">৳0 (ফ্রি ডেলিভারি 🎉)</span>
                     </div>
+
+                    {/* Savings Notice */}
+                    <div id="fk-summary-savings-box" class="bg-amber-100/80 border border-amber-300 text-amber-900 font-extrabold p-2 rounded-xl text-xs flex items-center gap-1.5">
+                      <i class="fas fa-gift text-amber-600"></i>
+                      <span>মেগা অফার: আপনি সরাসরি <strong>৳550+ টাকা সাশ্রয়</strong> করছেন!</span>
+                    </div>
+
                     <div class="h-px bg-sky-200 my-1"></div>
                     <div class="flex justify-between text-sm sm:text-base font-black text-slate-900">
                       <span>সর্বমোট টাকা:</span>
-                      <span id="fk-summary-total" class="text-sky-700 text-lg font-black">৳960</span>
+                      <span id="fk-summary-total" class="text-sky-700 text-lg font-black">৳1,390</span>
                     </div>
                   </div>
 
@@ -694,7 +815,7 @@ export const FocusKingLandingPage: FC = () => {
                     id="fk-submit-btn"
                     class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base sm:text-lg py-4 rounded-xl shadow-xl shadow-amber-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span id="fk-submit-text"># Cash on Delivery-তে অর্ডার করুন →</span>
+                    <span id="fk-submit-text"># Cash on Delivery-তে অর্ডার করুন (৳১,৩৯০) →</span>
                   </button>
 
                   <p class="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5 font-medium">
@@ -731,7 +852,7 @@ export const FocusKingLandingPage: FC = () => {
                   Focus King কী?
                 </h4>
                 <p class="text-slate-600 text-sm mt-2 pl-8 leading-relaxed font-medium">
-                  Focus King হলো Daily Focus & Productivity Support-এর জন্য তৈরি 500g-এর একটি প্রিমিয়াম প্রোডাক্ট, যা আপনার প্রতিদিনের পড়ালেখা ও কাজের একাগ্রতা ধরে রাখতে সাহায্য করে।
+                  Focus King হলো Daily Focus & Productivity Support-এর জন্য তৈরি একটি প্রিমিয়াম ফর্মুলা, যা আপনার প্রতিদিনের পড়ালেখা ও কাজের একাগ্রতা ও এনার্জি ধরে রাখতে সাহায্য করে।
                 </p>
               </div>
 
@@ -742,7 +863,7 @@ export const FocusKingLandingPage: FC = () => {
                   Focus King-এর দাম কত?
                 </h4>
                 <p class="text-slate-600 text-sm mt-2 pl-8 leading-relaxed font-medium">
-                  500g-এর জন্য বিশেষ অফার মূল্য <strong>৳900</strong> (নিয়মিত মূল্য ৳1,000)।
+                  500g-এর বিশেষ মূল্য <strong>৳890</strong> (ডেলিভারি চার্জ: ঢাকা ৳60, বাইরে ৳100)। আর মাত্র ৳500 যোগ করলেই পাবেন <strong>১ কেজি (1 KG) মাত্র ৳1,390-তে এবং ডেলিভারি চার্জ সম্পূর্ণ ফ্রি (৳550+ সেভ!)</strong>।
                 </p>
               </div>
 
@@ -786,7 +907,7 @@ export const FocusKingLandingPage: FC = () => {
                   Cash on Delivery আছে?
                 </h4>
                 <p class="text-slate-600 text-sm mt-2 pl-8 leading-relaxed font-medium">
-                  হ্যাঁ! পুরো বাংলাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করার সুবিধা রয়েছে। পণ্য হাতে পেয়ে মুল্য পরিশোধ করতে পারবেন।
+                  হ্যাঁ! সারাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করার সুবিধা রয়েছে। পণ্য হাতে পেয়ে মুল্য পরিশোধ করতে পারবেন।
                 </p>
               </div>
 
@@ -807,16 +928,20 @@ export const FocusKingLandingPage: FC = () => {
               </span>
             </h2>
 
-            <p class="text-sky-200 text-lg sm:text-xl font-bold">
-              👑 Focus King — 500g | ৳900
-            </p>
+            <div class="inline-flex flex-wrap items-center justify-center gap-3 text-sky-200 text-base sm:text-lg font-bold">
+              <span>👑 500g: ৳890</span>
+              <span class="text-amber-400">·</span>
+              <span class="text-amber-400 bg-amber-400/15 px-3 py-1 rounded-full border border-amber-400/30">
+                🔥 ১ কেজি (1 KG): মাত্র ৳1,390 (ফ্রি ডেলিভারি + ৳550+ সেভ!)
+              </span>
+            </div>
 
             <div>
               <a
                 href="#order-section"
                 class="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-lg sm:text-xl px-10 py-5 rounded-2xl shadow-2xl shadow-amber-500/30 transition-all inline-flex items-center justify-center gap-2 hover:scale-[1.03]"
               >
-                <span>🟢 এখনই অর্ডার করুন</span>
+                <span>🟢 এখনই অফারে অর্ডার করুন</span>
                 <span class="font-black">→</span>
               </a>
             </div>
@@ -826,7 +951,7 @@ export const FocusKingLandingPage: FC = () => {
         {/* Minimal Clean Landing Page Bottom Footer */}
         <footer class="bg-[#030d17] text-slate-400 text-xs py-8 text-center border-t border-sky-950">
           <div class="max-w-4xl mx-auto px-4 space-y-1.5">
-            <p class="font-black text-sky-200 text-sm">👑 KING™ FOCUS KING — 500g</p>
+            <p class="font-black text-sky-200 text-sm">👑 KING™ FOCUS KING — 500g & 1KG</p>
             <p class="text-xs text-sky-400/80">Natural Support for Focus & Productivity · Sharper Mind, Brighter Days</p>
             <p class="text-[11px] text-slate-500 pt-2">© 2026 Focus King · Offerekini.com | সর্বস্বত্ব সংরক্ষিত</p>
           </div>
@@ -842,42 +967,93 @@ export const FocusKingLandingPage: FC = () => {
             var form = document.getElementById('fk-order-form');
             if (!form) return;
 
-            var unitPrice = 900;
             var districtSelect = document.getElementById('fk-district');
-            var qtyRadios = document.querySelectorAll('.fk-qty-radio');
+            var pkgRadios = document.querySelectorAll('.fk-pkg-radio');
             var payRadios = document.querySelectorAll('.fk-pay-radio');
 
-            var summaryQty = document.getElementById('fk-summary-qty');
+            var summaryPkgName = document.getElementById('fk-summary-pkg-name');
             var summarySubtotal = document.getElementById('fk-summary-subtotal');
             var summaryDelivery = document.getElementById('fk-summary-delivery');
+            var summarySavingsBox = document.getElementById('fk-summary-savings-box');
             var summaryTotal = document.getElementById('fk-summary-total');
             var submitText = document.getElementById('fk-submit-text');
 
             function calculateTotals() {
-              var selectedQty = 1;
-              qtyRadios.forEach(function(r) {
-                if (r.checked) selectedQty = parseInt(r.value, 10) || 1;
+              var selectedPkg = '1kg';
+              pkgRadios.forEach(function(r) {
+                if (r.checked) selectedPkg = r.value;
               });
 
+              var pkgPrice = 1390;
+              var pkgName = '১ কেজি (1 KG — ২টি জার)';
+              var isFreeDelivery = true;
+              var quantityJars = 2;
+
+              if (selectedPkg === '500g') {
+                pkgPrice = 890;
+                pkgName = '500 গ্রাম (১টি জার)';
+                isFreeDelivery = false;
+                quantityJars = 1;
+              } else if (selectedPkg === '1.5kg') {
+                pkgPrice = 1990;
+                pkgName = '১.৫ কেজি (৩টি জার — ফ্যামিলি প্যাক)';
+                isFreeDelivery = true;
+                quantityJars = 3;
+              } else {
+                // 1kg default
+                pkgPrice = 1390;
+                pkgName = '১ কেজি (1 KG — ২টি জার)';
+                isFreeDelivery = true;
+                quantityJars = 2;
+              }
+
               var districtVal = districtSelect ? districtSelect.value : '';
-              var deliveryCharge = (districtVal.indexOf('ঢাকা') !== -1 || districtVal.indexOf('Dhaka') !== -1) ? 60 : 120;
+              var isDhaka = (districtVal.indexOf('ঢাকা') !== -1 || districtVal.indexOf('Dhaka') !== -1);
+              
+              // Delivery charge: 60 inside Dhaka, 100 outside Dhaka (for 500g), FREE for 1kg and 1.5kg
+              var deliveryCharge = isFreeDelivery ? 0 : (isDhaka ? 60 : 100);
+              var grandTotal = pkgPrice + deliveryCharge;
 
-              var subtotal = unitPrice * selectedQty;
-              var grandTotal = subtotal + deliveryCharge;
+              if (summaryPkgName) summaryPkgName.textContent = pkgName;
+              if (summarySubtotal) summarySubtotal.textContent = '৳' + pkgPrice.toLocaleString('en-US');
+              
+              if (summaryDelivery) {
+                if (isFreeDelivery) {
+                  summaryDelivery.textContent = '৳0 (ফ্রি ডেলিভারি 🎉)';
+                  summaryDelivery.className = 'font-black text-emerald-600';
+                } else {
+                  summaryDelivery.textContent = '৳' + deliveryCharge + (isDhaka ? ' (ঢাকা)' : ' (ঢাকার বাইরে)');
+                  summaryDelivery.className = 'font-bold text-sky-700';
+                }
+              }
 
-              if (summaryQty) summaryQty.textContent = selectedQty;
-              if (summarySubtotal) summarySubtotal.textContent = '৳' + subtotal.toLocaleString('en-US');
-              if (summaryDelivery) summaryDelivery.textContent = '৳' + deliveryCharge;
+              if (summarySavingsBox) {
+                if (selectedPkg === '1kg') {
+                  summarySavingsBox.style.display = 'flex';
+                  summarySavingsBox.innerHTML = '<i class="fas fa-gift text-amber-600"></i><span>মেগা অফার: মাত্র ৳৫০০ যোগ করে ১ কেজি পাচ্ছেন ও <strong>সরাসরি ৳৫৫০+ টাকা সেভ</strong> করছেন!</span>';
+                } else if (selectedPkg === '1.5kg') {
+                  summarySavingsBox.style.display = 'flex';
+                  summarySavingsBox.innerHTML = '<i class="fas fa-gift text-amber-600"></i><span>ফ্যামিলি প্যাক: ফ্রি ডেলিভারি সহ <strong>সরাসরি ৳৮০০+ টাকা সেভ</strong> করছেন!</span>';
+                } else {
+                  summarySavingsBox.style.display = 'none';
+                }
+              }
+
               if (summaryTotal) summaryTotal.textContent = '৳' + grandTotal.toLocaleString('en-US');
 
-              // Radio label styling update
-              document.querySelectorAll('.fk-qty-label').forEach(function(lbl) {
-                var radio = lbl.querySelector('.fk-qty-radio');
+              // Radio label border styling update
+              document.querySelectorAll('.fk-pkg-label').forEach(function(lbl) {
+                var radio = lbl.querySelector('.fk-pkg-radio');
                 if (radio && radio.checked) {
-                  lbl.classList.remove('border-slate-200', 'bg-white');
-                  lbl.classList.add('border-sky-600', 'bg-sky-50');
+                  if (radio.value === '1kg') {
+                    lbl.classList.remove('border-slate-200', 'bg-white');
+                    lbl.classList.add('border-amber-400', 'bg-amber-50/70');
+                  } else {
+                    lbl.classList.remove('border-slate-200', 'bg-white');
+                    lbl.classList.add('border-sky-600', 'bg-sky-50');
+                  }
                 } else {
-                  lbl.classList.remove('border-sky-600', 'bg-sky-50');
+                  lbl.classList.remove('border-amber-400', 'bg-amber-50/70', 'border-sky-600', 'bg-sky-50');
                   lbl.classList.add('border-slate-200', 'bg-white');
                 }
               });
@@ -893,20 +1069,21 @@ export const FocusKingLandingPage: FC = () => {
                 }
               });
 
-              // Submit button label update based on payment method
+              // Submit button label update
               var payMethod = 'cod';
               payRadios.forEach(function(p) { if (p.checked) payMethod = p.value; });
               if (submitText) {
                 if (payMethod === 'eps') {
-                  submitText.textContent = '# EPS-এ অনলাইন পে করুন (৳' + deliveryCharge + ' অগ্রিম) →';
+                  var epsAdvance = isFreeDelivery ? grandTotal : deliveryCharge;
+                  submitText.textContent = '# EPS-এ অনলাইন পে করুন (৳' + grandTotal.toLocaleString('en-US') + ') →';
                 } else {
-                  submitText.textContent = '# Cash on Delivery-তে অর্ডার করুন →';
+                  submitText.textContent = '# Cash on Delivery-তে অর্ডার করুন (৳' + grandTotal.toLocaleString('en-US') + ') →';
                 }
               }
             }
 
             if (districtSelect) districtSelect.addEventListener('change', calculateTotals);
-            qtyRadios.forEach(function(r) { r.addEventListener('change', calculateTotals); });
+            pkgRadios.forEach(function(r) { r.addEventListener('change', calculateTotals); });
             payRadios.forEach(function(r) { r.addEventListener('change', calculateTotals); });
 
             calculateTotals();
@@ -922,12 +1099,29 @@ export const FocusKingLandingPage: FC = () => {
               var phone = formData.get('phone');
               var district = formData.get('district');
               var address = formData.get('address');
-              var quantity = parseInt(formData.get('quantity'), 10) || 1;
+              var selectedPkg = formData.get('package') || '1kg';
               var payMethod = formData.get('paymentMethod') || 'cod';
 
-              var deliveryCharge = (district.indexOf('ঢাকা') !== -1 || district.indexOf('Dhaka') !== -1) ? 60 : 120;
-              var productTotal = unitPrice * quantity;
-              var grandTotal = productTotal + deliveryCharge;
+              var pkgPrice = 1390;
+              var pkgName = 'Focus King — 1 KG (2 Jars - Mega Saver)';
+              var isFreeDelivery = true;
+              var quantityJars = 2;
+
+              if (selectedPkg === '500g') {
+                pkgPrice = 890;
+                pkgName = 'Focus King — 500g (1 Jar)';
+                isFreeDelivery = false;
+                quantityJars = 1;
+              } else if (selectedPkg === '1.5kg') {
+                pkgPrice = 1990;
+                pkgName = 'Focus King — 1.5 KG (3 Jars - Family Pack)';
+                isFreeDelivery = true;
+                quantityJars = 3;
+              }
+
+              var isDhaka = (district.indexOf('ঢাকা') !== -1 || district.indexOf('Dhaka') !== -1);
+              var deliveryCharge = isFreeDelivery ? 0 : (isDhaka ? 60 : 100);
+              var grandTotal = pkgPrice + deliveryCharge;
               var orderId = 'OK-FK-' + Math.floor(10000 + Math.random() * 89999);
 
               var orderObj = {
@@ -939,15 +1133,15 @@ export const FocusKingLandingPage: FC = () => {
                 address: address,
                 items: [{
                   productId: 'p-focus-king',
-                  productName: 'Focus King — 500g',
+                  productName: pkgName,
                   productImage: '/static/images/products/focus-king.jpg',
-                  quantity: quantity,
-                  unitPrice: unitPrice
+                  quantity: quantityJars,
+                  unitPrice: pkgPrice
                 }],
-                productTotal: productTotal,
+                productTotal: pkgPrice,
                 deliveryCharge: deliveryCharge,
-                advancePaid: payMethod === 'eps' ? deliveryCharge : 0,
-                dueOnDelivery: payMethod === 'eps' ? productTotal : grandTotal,
+                advancePaid: payMethod === 'eps' ? grandTotal : 0,
+                dueOnDelivery: payMethod === 'eps' ? 0 : grandTotal,
                 totalAmount: grandTotal,
                 status: 'pending',
                 paymentStatus: payMethod === 'eps' ? 'pending_eps' : 'cod',
@@ -969,7 +1163,7 @@ export const FocusKingLandingPage: FC = () => {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     orderId: orderId,
-                    amount: deliveryCharge,
+                    amount: isFreeDelivery ? 100 : deliveryCharge,
                     customerName: name,
                     customerPhone: phone,
                     district: district,

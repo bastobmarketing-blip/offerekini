@@ -528,7 +528,7 @@ export const products: Product[] = [
     image: '/static/images/products/focus-king.jpg',
     gallery: ['/static/images/products/focus-king.jpg'],
     referencePrice: 1000,
-    offerKiniPrice: 900,
+    offerKiniPrice: 890,
     stockStatus: 'in_stock',
     stock: 100,
     badge: 'true_price',
