@@ -517,6 +517,47 @@ export const products: Product[] = [
     isNewArrival: false,
     isTruePrice: true,
     createdAt: '2026-04-28'
+  }),
+  withSavings({
+    id: 'p-focus-king',
+    slug: 'focus-king',
+    name: 'Focus King — 500g',
+    nameEn: 'Focus King 500g',
+    category: 'health-beauty',
+    merchantId: 'mer-1',
+    image: '/static/images/products/focus-king.jpg',
+    gallery: ['/static/images/products/focus-king.jpg'],
+    referencePrice: 1000,
+    offerKiniPrice: 900,
+    stockStatus: 'in_stock',
+    stock: 100,
+    badge: 'true_price',
+    status: 'approved',
+    rating: 4.9,
+    reviewCount: 56,
+    shortDescription: 'পড়াশোনা হোক বা কাজ—প্রতিদিনের Focus, Energy & Productivity Routine-এর জন্য Daily Support।',
+    description: 'Focus King 500g — প্রতিদিনের Focus, Energy & Productivity Routine-এর জন্য Daily Support।',
+    benefits: [
+      'Focus Support',
+      'Energy Support',
+      'Productivity Support',
+      'Mental Clarity'
+    ],
+    specifications: [
+      { label: 'ওজন', value: '500g' },
+      { label: 'ব্যবহারের মেয়াদ', value: '৩০ দিন (দৈনিক ১ বার)' },
+      { label: 'টাইপ', value: 'Daily Routine Supplement' }
+    ],
+    sku: 'OK-FK-500G',
+    weightGrams: 500,
+    supplyPrice: 650,
+    deliveryCharge: 60,
+    videoUrl: HOW_TO_USE_VIDEO_URL,
+    reviewProofs: defaultReviewProofs(),
+    isFeatured: true,
+    isNewArrival: true,
+    isTruePrice: true,
+    createdAt: '2026-09-17'
   })
 ]
 

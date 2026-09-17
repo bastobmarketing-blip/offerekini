@@ -31,6 +31,7 @@ import { LegalPage, privacyContent, termsContent, deliveryPolicyContent, returnP
 import { AccountPage } from './pages/customer/AccountPage'
 import { AccountOrdersPage } from './pages/customer/AccountOrdersPage'
 import { AccountOrderDetailPage } from './pages/customer/AccountOrderDetailPage'
+import { FocusKingLandingPage } from './pages/customer/FocusKingLandingPage'
 
 // ---- Merchant pages ----
 import { MerchantLoginPage } from './pages/merchant/MerchantLoginPage'
@@ -202,6 +203,8 @@ app.get('/search', (c) => {
 
 app.get('/cart', (c) => c.html(<CartPage />))
 app.get('/checkout', (c) => c.html(<CheckoutPage />))
+app.get('/focus_king', (c) => c.html(<FocusKingLandingPage />))
+app.get('/focus-king', (c) => c.redirect('/focus_king'))
 app.get('/order-success', (c) => c.html(<OrderSuccessPage />))
 
 app.get('/track-order', (c) => {
