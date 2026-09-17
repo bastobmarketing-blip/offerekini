@@ -11,6 +11,8 @@ interface CustomerLayoutProps {
   description?: string
   activeNav?: 'deals' | 'categories' | 'products' | 'how'
   activeMobileNav?: 'home' | 'categories' | 'cart' | 'account'
+  showHeader?: boolean
+  showFooter?: boolean
   showMobileNav?: boolean
   children: any
 }
@@ -24,6 +26,8 @@ export const CustomerLayout: FC<CustomerLayoutProps> = ({
   description,
   activeNav,
   activeMobileNav,
+  showHeader = true,
+  showFooter = true,
   showMobileNav = true,
   children
 }) => {
@@ -41,9 +45,9 @@ export const CustomerLayout: FC<CustomerLayoutProps> = ({
   return (
     <Document title={title} description={description}>
       <script dangerouslySetInnerHTML={{ __html: `window.__OK_CATALOG__ = ${JSON.stringify(catalog)};` }} />
-      <Header activeNav={activeNav} />
+      {showHeader && <Header activeNav={activeNav} />}
       <main class={showMobileNav ? 'pb-20 lg:pb-0' : ''}>{children}</main>
-      <Footer />
+      {showFooter && <Footer />}
       {showMobileNav && <MobileNav active={activeMobileNav} />}
       <CartDrawer />
     </Document>

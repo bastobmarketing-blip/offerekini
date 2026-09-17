@@ -25,6 +25,8 @@ export const FocusKingLandingPage: FC = () => {
     <CustomerLayout
       title="Focus King — 500g | Daily Focus, Energy & Productivity Routine Support"
       description="প্রতিদিন মাত্র ৳30 ইনভেস্ট করুন আপনার Focus Routine-এ। 500g Focus King মাত্র ৳900। ক্যাশ অন ডেলিভারি সুবিধা রয়েছে।"
+      showHeader={false}
+      showFooter={false}
       showMobileNav={false}
     >
       <div class="bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden selection:bg-sky-500 selection:text-white">
@@ -820,6 +822,15 @@ export const FocusKingLandingPage: FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Minimal Clean Landing Page Bottom Footer */}
+        <footer class="bg-[#030d17] text-slate-400 text-xs py-8 text-center border-t border-sky-950">
+          <div class="max-w-4xl mx-auto px-4 space-y-1.5">
+            <p class="font-black text-sky-200 text-sm">👑 KING™ FOCUS KING — 500g</p>
+            <p class="text-xs text-sky-400/80">Natural Support for Focus & Productivity · Sharper Mind, Brighter Days</p>
+            <p class="text-[11px] text-slate-500 pt-2">© 2026 Focus King · Offerekini.com | সর্বস্বত্ব সংরক্ষিত</p>
+          </div>
+        </footer>
 
       </div>
 
