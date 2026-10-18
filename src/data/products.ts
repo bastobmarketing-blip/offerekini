@@ -558,6 +558,47 @@ export const products: Product[] = [
     isNewArrival: true,
     isTruePrice: true,
     createdAt: '2026-09-17'
+  }),
+  withSavings({
+    id: 'p-testo-king',
+    slug: 'testo-king',
+    name: 'Testo King — 500g',
+    nameEn: 'Testo King 500g',
+    category: 'health-beauty',
+    merchantId: 'mer-1',
+    image: '/testo_king/jar.webp',
+    gallery: ['/testo_king/jar.webp'],
+    referencePrice: 1290,
+    offerKiniPrice: 990,
+    stockStatus: 'in_stock',
+    stock: 100,
+    badge: 'true_price',
+    status: 'approved',
+    rating: 4.9,
+    reviewCount: 48,
+    shortDescription: 'ব্যস্ত জীবন, রাত জেগে কাজ কিংবা পড়াশোনা — নিজের প্রতিদিনের রুটিনে বেছে নিন Testo King।',
+    description: 'Testo King ৫০০ গ্রাম জার — নিজের প্রতিদিনের রুটিনে বেছে নিন Testo King।',
+    benefits: [
+      'Energy Support',
+      'Vitality & Focus',
+      'Daily Routine Support',
+      'Herbal Blend'
+    ],
+    specifications: [
+      { label: 'ওজন', value: '500g' },
+      { label: 'ব্যবহারের মেয়াদ', value: '৩০ দিন (দৈনিক ১ বার)' },
+      { label: 'টাইপ', value: 'Daily Routine Supplement' }
+    ],
+    sku: 'OK-TK-500G',
+    weightGrams: 500,
+    supplyPrice: 700,
+    deliveryCharge: 60,
+    videoUrl: HOW_TO_USE_VIDEO_URL,
+    reviewProofs: defaultReviewProofs(),
+    isFeatured: true,
+    isNewArrival: true,
+    isTruePrice: true,
+    createdAt: '2026-10-18'
   })
 ]
 

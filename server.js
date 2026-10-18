@@ -4,6 +4,8 @@ import app from './src/index.tsx'
 
 // Serve static files from /public directory
 app.use('/static/*', serveStatic({ root: './public' }))
+app.use('/testo_king/*', serveStatic({ root: './public' }))
+app.use('/jar.webp', serveStatic({ path: './public/testo_king/jar.webp' }))
 
 // Serve favicon and well-known
 app.use('/favicon.ico', serveStatic({ path: './public/static/images/brand/offerkini-logo.png' }))

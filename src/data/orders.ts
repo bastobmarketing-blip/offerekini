@@ -125,3 +125,72 @@ export function getOrdersByMerchant(merchantId: string): Order[] {
 export function getOrdersByPhone(phone: string): Order[] {
   return orders.filter((o) => o.customerPhone === phone)
 }
+
+export interface CreateOrderInput {
+  customerName: string
+  customerPhone: string
+  address: string
+  district?: string
+  area?: string
+  productName: string
+  productId?: string
+  productImage?: string
+  package?: string
+  quantity?: number
+  price: number
+  delivery: number
+  total: number
+}
+
+export function createOrder(data: CreateOrderInput): Order {
+  const orderId = `OK-TK-${Math.floor(10000 + Math.random() * 89999)}`
+  const now = new Date()
+
+  let district = data.district || ''
+  if (!district) {
+    const knownDistricts = [
+      'ঢাকা', 'Dhaka', 'চট্টগ্রাম', 'Chittagong', 'সিলেট', 'Sylhet', 'রাজশাহী', 'Rajshahi',
+      'খুলনা', 'Khulna', 'বরিশাল', 'Barisal', 'রংপুর', 'Rangpur', 'ময়মনসিংহ', 'Mymensingh',
+      'কুমিল্লা', 'গাজীপুর', 'নারায়ণগঞ্জ', 'বগুড়া', 'দিনাজপুর', 'পাবনা', 'যশোর'
+    ]
+    for (const d of knownDistricts) {
+      if (data.address && data.address.includes(d)) {
+        district = d
+        break
+      }
+    }
+    if (!district) district = 'ঢাকা'
+  }
+
+  const newOrder: Order = {
+    id: orderId,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    address: data.address,
+    district,
+    area: data.area || district,
+    merchantId: 'mer-1',
+    items: [
+      {
+        productId: data.productId || 'p-testo-king',
+        productName: data.productName,
+        productImage: data.productImage || '/testo_king/jar.webp',
+        quantity: data.quantity || (data.package === '2x' ? 2 : 1),
+        unitPrice: data.price
+      }
+    ],
+    productTotal: data.price,
+    deliveryCharge: data.delivery,
+    advancePaid: 0,
+    dueOnDelivery: data.total,
+    totalAmount: data.total,
+    status: 'pending',
+    paymentStatus: 'cod',
+    createdAt: now.toISOString(),
+    estimatedDelivery: new Date(now.getTime() + 3 * 86400_000).toISOString(),
+    timeline: buildTimeline('pending', now)
+  }
+
+  orders.unshift(newOrder)
+  return newOrder
+}

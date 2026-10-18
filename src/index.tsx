@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 // ---- Data ----
 import { products, getProductBySlug, getProductsByCategory, searchProducts } from './data/products'
 import { getCategoryBySlug } from './data/categories'
-import { getOrderById, getOrdersByMerchant, orders } from './data/orders'
+import { getOrderById, getOrdersByMerchant, orders, createOrder } from './data/orders'
 import { getCustomerByPhone, customers } from './data/customers'
 import { merchants, getMerchantById } from './data/merchants'
 import { getSettlementsByMerchant } from './data/settlements'
@@ -123,6 +123,69 @@ app.post('/api/eps/initiate', async (c) => {
   }
 })
 
+// ==========================================================================
+// ORDER API (Landing pages like Testo King & Focus King)
+// ==========================================================================
+app.post('/api/orders', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { name, phone, address, package: pkgId, product, price, delivery, total } = body
+
+    if (!name || !phone || !address) {
+      return c.json({ success: false, error: 'Name, phone, and address are required' }, 400)
+    }
+
+    const order = createOrder({
+      customerName: name,
+      customerPhone: phone,
+      address,
+      productName: product || 'Testo King',
+      productId: 'p-testo-king',
+      productImage: '/testo_king/jar.webp',
+      package: pkgId,
+      quantity: pkgId === '2x' ? 2 : 1,
+      price: Number(price) || (pkgId === '2x' ? 1490 : 990),
+      delivery: Number(delivery) || 0,
+      total: Number(total) || (Number(price) + Number(delivery))
+    })
+
+    return c.json({ success: true, orderId: order.id, order }, 200)
+  } catch (err: any) {
+    console.error('Order creation error:', err)
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.post('/api/testo_king/order', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { name, phone, address, package: pkgId, product, price, delivery, total } = body
+
+    if (!name || !phone || !address) {
+      return c.json({ success: false, error: 'Name, phone, and address are required' }, 400)
+    }
+
+    const order = createOrder({
+      customerName: name,
+      customerPhone: phone,
+      address,
+      productName: product || 'Testo King',
+      productId: 'p-testo-king',
+      productImage: '/testo_king/jar.webp',
+      package: pkgId,
+      quantity: pkgId === '2x' ? 2 : 1,
+      price: Number(price) || (pkgId === '2x' ? 1490 : 990),
+      delivery: Number(delivery) || 0,
+      total: Number(total) || (Number(price) + Number(delivery))
+    })
+
+    return c.json({ success: true, orderId: order.id, order }, 200)
+  } catch (err: any) {
+    console.error('Testo King order creation error:', err)
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 app.get('/payment/eps-gateway', (c) => c.redirect('/checkout'))
 
 app.get('/payment/success', async (c) => {
@@ -205,6 +268,34 @@ app.get('/cart', (c) => c.html(<CartPage />))
 app.get('/checkout', (c) => c.html(<CheckoutPage />))
 app.get('/focus_king', (c) => c.html(<FocusKingLandingPage />))
 app.get('/focus-king', (c) => c.redirect('/focus_king'))
+app.get('/testo-king', (c) => c.redirect('/testo_king/'))
+app.get('/testo_king', (c) => c.redirect('/testo_king/'))
+app.get('/testo_king/', async (c) => {
+  try {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const filePath = path.resolve(process.cwd(), 'public/testo_king/index.html')
+    if (fs.existsSync(filePath)) {
+      return c.html(fs.readFileSync(filePath, 'utf-8'))
+    }
+  } catch (e) {}
+  return c.redirect('/testo_king/index.html')
+})
+app.get('/testo_king/jar.webp', async (c) => {
+  try {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const filePath = path.resolve(process.cwd(), 'public/testo_king/jar.webp')
+    if (fs.existsSync(filePath)) {
+      const buffer = fs.readFileSync(filePath)
+      return new Response(buffer, {
+        headers: { 'Content-Type': 'image/webp', 'Cache-Control': 'public, max-age=31536000' }
+      })
+    }
+  } catch (e) {}
+  return c.notFound()
+})
+app.get('/jar.webp', (c) => c.redirect('/testo_king/jar.webp'))
 app.get('/order-success', (c) => c.html(<OrderSuccessPage />))
 
 app.get('/track-order', (c) => {
