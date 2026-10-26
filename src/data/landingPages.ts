@@ -131,7 +131,31 @@ export function getAllLandingPages(): LandingPageConfig[] {
 
 export function getLandingPageBySlug(slug: string): LandingPageConfig | undefined {
   const pages = loadPages()
-  return pages.find((p) => p.slug === slug || p.slug === slug.replace(/^\//, ''))
+  const clean = slug.trim().toLowerCase().replace(/^\//, '')
+  return pages.find((p) => p.slug.toLowerCase() === clean || p.slug.toLowerCase() === slug.toLowerCase())
+}
+
+export function getLandingPageForProduct(productIdOrSlug: string): LandingPageConfig | undefined {
+  if (!productIdOrSlug) return undefined
+  const pages = loadPages().filter((p) => p.active)
+  const clean = productIdOrSlug.trim().toLowerCase()
+  const cleanNormalized = clean.replace(/[_-]/g, '')
+
+  return pages.find((p) => {
+    if (p.productId && p.productId.toLowerCase() === clean) return true
+    if (p.slug.toLowerCase() === clean) return true
+    if (p.slug.replace(/[_-]/g, '') === cleanNormalized) return true
+    if (p.productName && p.productName.toLowerCase().replace(/\s+/g, '-') === clean) return true
+    if (clean.includes('focus') && p.slug.includes('focus')) return true
+    if (clean.includes('testo') && p.slug.includes('testo')) return true
+    return false
+  })
+}
+
+export function getLandingPageUrl(lp: LandingPageConfig): string {
+  if (lp.slug === 'focus_king' || lp.slug === 'focus-king') return '/focus_king'
+  if (lp.slug === 'testo_king' || lp.slug === 'testo-king') return '/testo_king/'
+  return `/${lp.slug}`
 }
 
 export function createLandingPage(input: Partial<LandingPageConfig> & { slug: string; title: string; productName: string }): LandingPageConfig {

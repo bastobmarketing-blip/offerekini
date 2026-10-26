@@ -1,6 +1,6 @@
 import type { FC } from 'hono/jsx'
 import { AdminLayout } from '../../layouts/AdminLayout'
-import { getAllLandingPages } from '../../data/landingPages'
+import { getAllLandingPages, getLandingPageUrl } from '../../data/landingPages'
 import { products } from '../../data/products'
 
 export const AdminLandingPagesPage: FC = () => {
@@ -53,11 +53,11 @@ export const AdminLandingPagesPage: FC = () => {
                   </td>
                   <td class="p-4">
                     <a
-                      href={`/${lp.slug}`}
+                      href={getLandingPageUrl(lp)}
                       target="_blank"
                       class="text-xs font-mono font-bold text-sky-600 hover:underline flex items-center gap-1"
                     >
-                      <span>/{lp.slug}</span>
+                      <span>{getLandingPageUrl(lp)}</span>
                       <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
                     </a>
                   </td>
@@ -125,6 +125,33 @@ export const AdminLandingPagesPage: FC = () => {
           </div>
 
           <form id="create-lp-form" class="space-y-4">
+            <div class="sm:col-span-2 bg-ok-green-50/60 p-3.5 rounded-xl border border-ok-green-200">
+              <label class="text-xs font-bold text-ok-green-900 block mb-1">
+                <i class="fas fa-link text-ok-green-700"></i> প্রোডাক্টের সাথে লিংক করুন (Linked Product)
+              </label>
+              <select
+                id="product-link-select"
+                name="productId"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:border-ok-green-600 focus:outline-none bg-white"
+                onchange="handleSelectProductForLP(this)"
+              >
+                <option value="">-- নতুন তৈরি করুন অথবা বিদ্যমান প্রোডাক্ট বাছাই করুন --</option>
+                {products.map((p) => (
+                  <option
+                    value={p.id}
+                    data-name={p.name}
+                    data-slug={p.slug}
+                    data-image={p.image}
+                    data-price={p.offerKiniPrice}
+                    data-reg={p.referencePrice}
+                  >
+                    {p.name} (৳{p.offerKiniPrice})
+                  </option>
+                ))}
+              </select>
+              <p class="text-[11px] text-ok-gray-500 mt-1">প্রোডাক্ট সিলেক্ট করলে নাম, ছবি এবং মূল্য অটোমেটিক পূরণ হবে ও প্রোডাক্টের সাথে ল্যান্ডিং পেজ মার্জ হয়ে যাবে।</p>
+            </div>
+
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
                 <label class="text-xs font-bold text-slate-700 block mb-1">URL Slug (লিংক পাথ) *</label>
@@ -271,6 +298,29 @@ export const AdminLandingPagesPage: FC = () => {
 
       <script dangerouslySetInnerHTML={{
         __html: `
+          function handleSelectProductForLP(selectEl) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt || !selectEl.value) return;
+            const name = opt.getAttribute('data-name');
+            const slug = opt.getAttribute('data-slug');
+            const img = opt.getAttribute('data-image');
+            const price = opt.getAttribute('data-price');
+            const reg = opt.getAttribute('data-reg');
+
+            const form = document.getElementById('create-lp-form');
+            if (name) {
+              form.productName.value = name;
+              if (!form.headline.value) form.headline.value = name.toUpperCase();
+            }
+            if (slug && !form.slug.value) {
+              form.slug.value = slug;
+            }
+            if (img) form.productImage.value = img;
+            if (price) form.offerPrice.value = price;
+            if (reg) form.regularPrice.value = reg;
+            if (price) form.megaPrice.value = Math.round(Number(price) * 1.7);
+          }
+
           async function deleteLandingPageRow(id, name) {
             if (!confirm('আপনি কি নিশ্চিতভাবে "' + name + '" ল্যান্ডিং পেজটি ডিলিট করতে চান?')) {
               return;
@@ -302,6 +352,7 @@ export const AdminLandingPagesPage: FC = () => {
             lpSubmitBtn.innerHTML = 'পাবলিশ হচ্ছে...';
 
             var payload = {
+              productId: lpForm.productId ? lpForm.productId.value : undefined,
               slug: lpForm.slug.value,
               title: lpForm.headline.value + ' | OfferKini',
               headline: lpForm.headline.value,

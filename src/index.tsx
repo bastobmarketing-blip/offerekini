@@ -62,7 +62,7 @@ import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
 import { addProduct, deleteProduct, updateProduct } from './data/products'
 import { updateOrderStatus, updateOrderCourier } from './data/orders'
-import { getAllLandingPages, getLandingPageBySlug, createLandingPage, deleteLandingPage } from './data/landingPages'
+import { getAllLandingPages, getLandingPageBySlug, getLandingPageForProduct, getLandingPageUrl, createLandingPage, deleteLandingPage } from './data/landingPages'
 import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
 import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings } from './utils/tracking'
 
@@ -293,8 +293,16 @@ app.get('/category/:slug', (c) => {
 })
 
 app.get('/product/:slug', (c) => {
-  const product = getProductBySlug(c.req.param('slug'))
+  const slug = c.req.param('slug')
+  const product = getProductBySlug(slug)
   if (!product) return c.notFound()
+
+  // Auto-merge logic: If this product has an active landing page, open landing page!
+  const lp = getLandingPageForProduct(product.id) || getLandingPageForProduct(product.slug)
+  if (lp) {
+    return c.redirect(getLandingPageUrl(lp), 302)
+  }
+
   return c.html(<ProductDetailPage product={product} />)
 })
 

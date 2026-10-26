@@ -551,8 +551,8 @@ export const products: Product[] = [
       { label: 'টাইপ', value: 'Daily Routine Supplement' }
     ],
     variants: [
-      { id: 'v-fk-500g', label: '500g রেগুলার জার', stock: 100 },
-      { id: 'v-fk-1kg', label: '1 KG মেগা সেভার', stock: 50 }
+      { id: 'v-fk-500g', label: '500g রেগুলার প্যাক (৳890)', extraPrice: 0, stock: 100 },
+      { id: 'v-fk-1kg', label: '1 KG মেগা সেভার (৳1390 + ফ্রি ডেলিভারি)', extraPrice: 500, stock: 50 }
     ],
     sku: 'OK-FK-500G',
     weightGrams: 500,
@@ -596,8 +596,8 @@ export const products: Product[] = [
       { label: 'টাইপ', value: 'Daily Routine Supplement' }
     ],
     variants: [
-      { id: 'v-tk-500g', label: '500g রেগুলার জার', stock: 100 },
-      { id: 'v-tk-2x', label: '২টি জার মেগা কম্বো', stock: 50 }
+      { id: 'v-tk-500g', label: '500g রেগুলার জার (৳990)', extraPrice: 0, stock: 100 },
+      { id: 'v-tk-2x', label: '২টি জার মেগা কম্বো (৳1490 + ফ্রি ডেলিভারি)', extraPrice: 500, stock: 50 }
     ],
     sku: 'OK-TK-500G',
     weightGrams: 500,
@@ -652,6 +652,27 @@ export function searchProducts(query: string): Product[] {
 // =============================================================================
 const CUSTOM_PRODUCTS_FILE = path.resolve(process.cwd(), 'data/custom_products.json')
 const DELETED_PRODUCTS_FILE = path.resolve(process.cwd(), 'data/deleted_products.json')
+const PRODUCT_OVERRIDES_FILE = path.resolve(process.cwd(), 'data/product_overrides.json')
+
+function loadProductOverrides(): Record<string, Partial<Product>> {
+  try {
+    if (fs.existsSync(PRODUCT_OVERRIDES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PRODUCT_OVERRIDES_FILE, 'utf-8'))
+      if (typeof data === 'object' && data !== null) return data
+    }
+  } catch (e) {}
+  return {}
+}
+
+function saveProductOverride(id: string, updates: Partial<Product>): void {
+  try {
+    const dir = path.dirname(PRODUCT_OVERRIDES_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    const current = loadProductOverrides()
+    current[id] = { ...(current[id] || {}), ...updates }
+    fs.writeFileSync(PRODUCT_OVERRIDES_FILE, JSON.stringify(current, null, 2), 'utf-8')
+  } catch (e) {}
+}
 
 function loadDeletedIds(): Set<string> {
   try {
@@ -707,6 +728,15 @@ const customList = loadCustomProducts()
 for (const cp of customList) {
   if (!products.some((p) => p.id === cp.id) && !deletedIds.has(cp.id)) {
     products.unshift(cp)
+  }
+}
+
+// Apply persisted product overrides (e.g. price, variants, titles modified by admin)
+const productOverrides = loadProductOverrides()
+for (let i = 0; i < products.length; i++) {
+  const p = products[i]
+  if (productOverrides[p.id]) {
+    products[i] = withSavings({ ...p, ...productOverrides[p.id] })
   }
 }
 
@@ -793,6 +823,7 @@ export function updateProduct(id: string, updates: Partial<Product>): Product | 
 
   products[index] = merged
   saveCustomProducts()
+  saveProductOverride(id, updates)
   return merged
 }
 

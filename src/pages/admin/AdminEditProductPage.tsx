@@ -158,6 +158,15 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
                     />
                   </div>
                   <div class="w-28">
+                    <label class="text-[11px] font-bold text-ok-gray-500 block mb-0.5">অতিরিক্ত মূল্য (৳)</label>
+                    <input
+                      type="number"
+                      class="variant-extra w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:outline-none focus:border-ok-green-700 bg-white"
+                      value={String(v.extraPrice || 0)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div class="w-24">
                     <label class="text-[11px] font-bold text-ok-gray-500 block mb-0.5">স্টক (Stock)</label>
                     <input
                       type="number"
@@ -273,6 +282,10 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
                   '<input type="text" class="variant-label w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:outline-none focus:border-ok-green-700 bg-white" placeholder="যেমন: 1 KG মেগা প্যাক" required />' +
                 '</div>' +
                 '<div class="w-28">' +
+                  '<label class="text-[11px] font-bold text-ok-gray-500 block mb-0.5">অতিরিক্ত মূল্য (৳)</label>' +
+                  '<input type="number" class="variant-extra w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:outline-none focus:border-ok-green-700 bg-white" value="0" placeholder="0" />' +
+                '</div>' +
+                '<div class="w-24">' +
                   '<label class="text-[11px] font-bold text-ok-gray-500 block mb-0.5">স্টক (Stock)</label>' +
                   '<input type="number" class="variant-stock w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold focus:outline-none focus:border-ok-green-700 bg-white" value="50" required />' +
                 '</div>' +
@@ -294,8 +307,9 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
               variantRows.forEach(function(r, idx) {
                 var label = r.querySelector('.variant-label').value.trim();
                 var stock = parseInt(r.querySelector('.variant-stock').value) || 0;
+                var extra = parseFloat(r.querySelector('.variant-extra')?.value) || 0;
                 if (label) {
-                  variants.push({ id: 'v-' + (idx + 1), label: label, stock: stock });
+                  variants.push({ id: 'v-' + (idx + 1), label: label, extraPrice: extra, stock: stock });
                 }
               });
 
