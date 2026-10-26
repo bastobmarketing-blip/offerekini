@@ -13,9 +13,9 @@ const SETTINGS_FILE = path.resolve(process.cwd(), 'data/tracking_settings.json')
 const ENV_FILE = path.resolve(process.cwd(), '.env')
 
 const DEFAULT_SETTINGS: TrackingSettings = {
-  pixelId: process.env.META_PIXEL_ID || '1592469171544877',
-  accessToken: process.env.META_ACCESS_TOKEN || 'EAAEW7ngIMZB4BS9PiMkopwZBvCGgySngNZBhEpIkKjXKgCh7Ni5ZA6h7D6H1ZBy47aZC0ZB7oTjojRbjB4EE01uZAVn55KSszwYtuxZCBWv4p2DUrrMZAo5W9njnjHCocVmZAxwGrj0qT7oj4X08rb4s4qmAd5t6pZCmRTCW2oviFGApwfEGBAluCZBWigMuZAaYJlvaOenQZDZD',
-  testEventCode: process.env.META_TEST_EVENT_CODE || 'TEST24540',
+  pixelId: process.env.META_PIXEL_ID || '1416528586776042',
+  accessToken: process.env.META_ACCESS_TOKEN || '',
+  testEventCode: process.env.META_TEST_EVENT_CODE || '',
   enabled: true
 }
 
