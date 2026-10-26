@@ -550,6 +550,10 @@ export const products: Product[] = [
       { label: 'ব্যবহারের মেয়াদ', value: '৩০ দিন (দৈনিক ১ বার)' },
       { label: 'টাইপ', value: 'Daily Routine Supplement' }
     ],
+    variants: [
+      { id: 'v-fk-500g', label: '500g রেগুলার জার', stock: 100 },
+      { id: 'v-fk-1kg', label: '1 KG মেগা সেভার', stock: 50 }
+    ],
     sku: 'OK-FK-500G',
     weightGrams: 500,
     supplyPrice: 650,
@@ -590,6 +594,10 @@ export const products: Product[] = [
       { label: 'ওজন', value: '500g' },
       { label: 'ব্যবহারের মেয়াদ', value: '৩০ দিন (দৈনিক ১ বার)' },
       { label: 'টাইপ', value: 'Daily Routine Supplement' }
+    ],
+    variants: [
+      { id: 'v-tk-500g', label: '500g রেগুলার জার', stock: 100 },
+      { id: 'v-tk-2x', label: '২টি জার মেগা কম্বো', stock: 50 }
     ],
     sku: 'OK-TK-500G',
     weightGrams: 500,
@@ -760,5 +768,31 @@ export function deleteProduct(id: string): boolean {
     return true
   }
   return false
+}
+
+export function updateProduct(id: string, updates: Partial<Product>): Product | null {
+  const index = products.findIndex((p) => p.id === id)
+  if (index === -1) return null
+
+  const existing = products[index]
+  const ref = updates.referencePrice !== undefined ? Number(updates.referencePrice) : existing.referencePrice
+  const okPrice = updates.offerKiniPrice !== undefined ? Number(updates.offerKiniPrice) : existing.offerKiniPrice
+
+  const merged: Product = withSavings({
+    ...existing,
+    ...updates,
+    id: existing.id,
+    slug: updates.slug || existing.slug,
+    name: updates.name || existing.name,
+    referencePrice: ref,
+    offerKiniPrice: okPrice,
+    stock: updates.stock !== undefined ? Number(updates.stock) : existing.stock,
+    deliveryCharge: updates.deliveryCharge !== undefined ? Number(updates.deliveryCharge) : existing.deliveryCharge,
+    variants: updates.variants && updates.variants.length ? updates.variants : (existing.variants || [{ id: 'v-1', label: 'স্ট্যান্ডার্ড', stock: existing.stock || 50 }])
+  })
+
+  products[index] = merged
+  saveCustomProducts()
+  return merged
 }
 

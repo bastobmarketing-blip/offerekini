@@ -47,17 +47,24 @@ import { MerchantStorePage } from './pages/merchant/MerchantStorePage'
 import { MerchantProfilePage } from './pages/merchant/MerchantProfilePage'
 import { MerchantSettingsPage } from './pages/merchant/MerchantSettingsPage'
 
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
+
 // ---- Admin pages ----
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { AdminMerchantsPage } from './pages/admin/AdminMerchantsPage'
 import { AdminProductsPage } from './pages/admin/AdminProductsPage'
 import { AdminAddProductPage } from './pages/admin/AdminAddProductPage'
+import { AdminEditProductPage } from './pages/admin/AdminEditProductPage'
 import { AdminLandingPagesPage } from './pages/admin/AdminLandingPagesPage'
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
-import { addProduct, deleteProduct } from './data/products'
+import { addProduct, deleteProduct, updateProduct } from './data/products'
+import { updateOrderStatus, updateOrderCourier } from './data/orders'
 import { getAllLandingPages, getLandingPageBySlug, createLandingPage, deleteLandingPage } from './data/landingPages'
+import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
+import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings } from './utils/tracking'
 
 const app = new Hono()
 
@@ -154,6 +161,20 @@ app.post('/api/orders', async (c) => {
       total: Number(total) || (Number(price) + Number(delivery))
     })
 
+    // Fire Server-Side Meta CAPI Purchase event (non-blocking)
+    sendMetaServerEvent({
+      eventName: 'Purchase',
+      orderId: order.id,
+      productName: order.items[0]?.productName || 'Order Item',
+      value: order.totalAmount,
+      currency: 'BDT',
+      phone: order.customerPhone,
+      name: order.customerName,
+      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
+      userAgent: c.req.header('user-agent'),
+      sourceUrl: c.req.url
+    }).catch((e) => console.error('CAPI trigger error:', e))
+
     return c.json({ success: true, orderId: order.id, order }, 200)
   } catch (err: any) {
     console.error('Order creation error:', err)
@@ -183,6 +204,20 @@ app.post('/api/testo_king/order', async (c) => {
       delivery: Number(delivery) || 0,
       total: Number(total) || (Number(price) + Number(delivery))
     })
+
+    // Fire Server-Side Meta CAPI Purchase event (non-blocking)
+    sendMetaServerEvent({
+      eventName: 'Purchase',
+      orderId: order.id,
+      productName: order.items[0]?.productName || 'Order Item',
+      value: order.totalAmount,
+      currency: 'BDT',
+      phone: order.customerPhone,
+      name: order.customerName,
+      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
+      userAgent: c.req.header('user-agent'),
+      sourceUrl: c.req.url
+    }).catch((e) => console.error('CAPI trigger error:', e))
 
     return c.json({ success: true, orderId: order.id, order }, 200)
   } catch (err: any) {
@@ -342,8 +377,19 @@ app.get('/account/order/:id', (c) => {
 })
 
 // Dynamic Landing Page Route (e.g. /my-offer or /l/my-offer)
+const RESERVED_SLUGS = new Set([
+  'cart', 'checkout', 'admin', 'merchant', 'api', 'static', 'product', 'category',
+  'search', 'track-order', 'about', 'contact', 'how-it-works', 'order-success',
+  'payment', 'login', 'register', 'jar.webp', 'favicon.ico', 'account', 'privacy',
+  'terms', 'delivery-policy', 'return-policy'
+])
+
 app.get('/:slug', async (c, next) => {
   const slug = c.req.param('slug')
+  if (RESERVED_SLUGS.has(slug.toLowerCase())) {
+    return await next()
+  }
+
   const lp = getLandingPageBySlug(slug)
   if (lp) {
     if (lp.slug === 'focus_king') return c.redirect('/focus_king')
@@ -354,53 +400,156 @@ app.get('/:slug', async (c, next) => {
 })
 
 // ==========================================================================
-// MERCHANT ROUTES
+// MERCHANT SESSION & ISOLATION HELPERS
+// ==========================================================================
+function getMerchantIdFromContext(c: any): string {
+  const cookieVal = getCookie(c, 'merchant_session')
+  if (cookieVal && getMerchantById(cookieVal)) {
+    return cookieVal
+  }
+  return 'mer-1'
+}
+
+// ==========================================================================
+// MERCHANT ROUTES & APIS
 // ==========================================================================
 app.get('/merchant/login', (c) => c.html(<MerchantLoginPage />))
 
+app.post('/api/merchant/login', async (c) => {
+  try {
+    const { identifier, password } = await c.req.json()
+    const cleanId = (identifier || '').trim().toLowerCase()
+
+    // Find merchant matching phone or email
+    const match = merchants.find(
+      (m) =>
+        m.id.toLowerCase() === cleanId ||
+        m.email.toLowerCase() === cleanId ||
+        m.phone.replace(/[^0-9]/g, '') === cleanId.replace(/[^0-9]/g, '')
+    )
+
+    // Demo/prototype allows login for any registered merchant or demo credentials
+    const targetMerchant = match || merchants[0]
+
+    setCookie(c, 'merchant_session', targetMerchant.id, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      maxAge: 2592000 // 30 days
+    })
+
+    return c.json({ success: true, redirect: '/merchant/dashboard', merchant: targetMerchant })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400)
+  }
+})
+
+app.get('/merchant/logout', (c) => {
+  deleteCookie(c, 'merchant_session', { path: '/' })
+  return c.redirect('/merchant/login')
+})
+
 app.get('/merchant/dashboard', (c) => {
-  const merchant = getMerchantById(DEMO_MERCHANT_ID)!
-  const merchantOrders = getOrdersByMerchant(DEMO_MERCHANT_ID)
-  const merchantProducts = products.filter((p) => p.merchantId === DEMO_MERCHANT_ID)
+  const merchantId = getMerchantIdFromContext(c)
+  const merchant = getMerchantById(merchantId) || merchants[0]
+  const merchantOrders = getOrdersByMerchant(merchantId)
+  const merchantProducts = products.filter((p) => p.merchantId === merchantId)
   return c.html(<MerchantDashboardPage merchant={merchant} orders={merchantOrders} products={merchantProducts} />)
 })
 
 app.get('/merchant/products', (c) => {
-  const merchantProducts = products.filter((p) => p.merchantId === DEMO_MERCHANT_ID)
+  const merchantId = getMerchantIdFromContext(c)
+  const merchantProducts = products.filter((p) => p.merchantId === merchantId)
   return c.html(<MerchantProductsPage products={merchantProducts} />)
 })
 app.get('/merchant/products/new', (c) => c.html(<MerchantAddProductPage />))
 app.get('/merchant/products/:id', (c) => {
-  const product = products.find((p) => p.id === c.req.param('id'))
+  const merchantId = getMerchantIdFromContext(c)
+  const product = products.find((p) => p.id === c.req.param('id') && p.merchantId === merchantId)
   if (!product) return c.notFound()
   return c.html(<MerchantProductDetailPage product={product} />)
 })
 
 app.get('/merchant/orders', (c) => {
-  const merchantOrders = getOrdersByMerchant(DEMO_MERCHANT_ID)
+  const merchantId = getMerchantIdFromContext(c)
+  const merchantOrders = getOrdersByMerchant(merchantId)
   return c.html(<MerchantOrdersPage orders={merchantOrders} />)
 })
 app.get('/merchant/orders/:id', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
   const order = getOrderById(c.req.param('id'))
-  if (!order) return c.notFound()
+  // Isolation: verify merchant owns this order
+  if (!order || order.merchantId !== merchantId) return c.notFound()
   return c.html(<MerchantOrderDetailPage order={order} />)
 })
 
+// Merchant Order Status Update API
+app.post('/api/merchant/orders/:id/status', async (c) => {
+  try {
+    const merchantId = getMerchantIdFromContext(c)
+    const orderId = c.req.param('id')
+    const { status } = await c.req.json()
+    const order = getOrderById(orderId)
+    if (!order || order.merchantId !== merchantId) {
+      return c.json({ success: false, error: 'Order not found or unauthorized' }, 403)
+    }
+    const updated = updateOrderStatus(orderId, status)
+    return c.json({ success: true, order: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Merchant Steadfast Courier Dispatch API
+app.post('/api/merchant/orders/:id/send-courier', async (c) => {
+  try {
+    const merchantId = getMerchantIdFromContext(c)
+    const orderId = c.req.param('id')
+    const order = getOrderById(orderId)
+    if (!order || order.merchantId !== merchantId) {
+      return c.json({ success: false, error: 'Order not found or unauthorized' }, 403)
+    }
+
+    const courierRes = await sendOrderToSteadfast(order)
+    if (courierRes.success) {
+      const updated = updateOrderCourier(orderId, {
+        consignmentId: courierRes.consignmentId,
+        trackingCode: courierRes.trackingCode,
+        courierProvider: 'Steadfast'
+      })
+      return c.json({
+        success: true,
+        consignmentId: courierRes.consignmentId,
+        trackingCode: courierRes.trackingCode,
+        order: updated
+      })
+    } else {
+      return c.json({ success: false, error: courierRes.error }, 400)
+    }
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 app.get('/merchant/earnings', (c) => {
-  const merchantOrders = getOrdersByMerchant(DEMO_MERCHANT_ID)
-  const merchantSettlements = getSettlementsByMerchant(DEMO_MERCHANT_ID)
+  const merchantId = getMerchantIdFromContext(c)
+  const merchantOrders = getOrdersByMerchant(merchantId)
+  const merchantSettlements = getSettlementsByMerchant(merchantId)
   return c.html(<MerchantEarningsPage orders={merchantOrders} settlements={merchantSettlements} />)
 })
 app.get('/merchant/settlements', (c) => {
-  const merchantSettlements = getSettlementsByMerchant(DEMO_MERCHANT_ID)
+  const merchantId = getMerchantIdFromContext(c)
+  const merchantSettlements = getSettlementsByMerchant(merchantId)
   return c.html(<MerchantSettlementsPage settlements={merchantSettlements} />)
 })
 app.get('/merchant/store', (c) => {
-  const merchant = getMerchantById(DEMO_MERCHANT_ID)!
+  const merchantId = getMerchantIdFromContext(c)
+  const merchant = getMerchantById(merchantId) || merchants[0]
   return c.html(<MerchantStorePage merchant={merchant} />)
 })
 app.get('/merchant/profile', (c) => {
-  const merchant = getMerchantById(DEMO_MERCHANT_ID)!
+  const merchantId = getMerchantIdFromContext(c)
+  const merchant = getMerchantById(merchantId) || merchants[0]
   return c.html(<MerchantProfilePage merchant={merchant} />)
 })
 app.get('/merchant/settings', (c) => c.html(<MerchantSettingsPage />))
@@ -415,8 +564,15 @@ app.get('/admin/dashboard', (c) => c.html(<AdminDashboardPage />))
 app.get('/admin/merchants', (c) => c.html(<AdminMerchantsPage />))
 app.get('/admin/products', (c) => c.html(<AdminProductsPage />))
 app.get('/admin/products/new', (c) => c.html(<AdminAddProductPage />))
+app.get('/admin/products/:id/edit', (c) => {
+  const id = c.req.param('id')
+  const product = products.find((p) => p.id === id)
+  if (!product) return c.notFound()
+  return c.html(<AdminEditProductPage product={product} />)
+})
 app.get('/admin/landing-pages', (c) => c.html(<AdminLandingPagesPage />))
 app.get('/admin/orders', (c) => c.html(<AdminOrdersPage />))
+app.get('/admin/settings', (c) => c.html(<AdminSettingsPage />))
 
 // Admin Product APIs
 app.get('/api/admin/products', (c) => c.json({ success: true, products }))
@@ -428,6 +584,20 @@ app.post('/api/admin/products', async (c) => {
     }
     const newProduct = addProduct(body)
     return c.json({ success: true, product: newProduct }, 201)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.put('/api/admin/products/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const updated = updateProduct(id, body)
+    if (!updated) {
+      return c.json({ success: false, error: 'Product not found' }, 404)
+    }
+    return c.json({ success: true, product: updated })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }
@@ -448,6 +618,28 @@ app.post('/api/admin/landing-pages', async (c) => {
       return c.json({ success: false, error: 'Slug and product name are required' }, 400)
     }
     const newPage = createLandingPage(body)
+
+    // Automatically ensure this landing page's product exists in the main product catalog!
+    const existingProduct = products.find((p) => p.slug === newPage.slug || p.id === newPage.productId)
+    if (!existingProduct) {
+      addProduct({
+        id: newPage.productId || `p-${newPage.slug}`,
+        slug: newPage.slug,
+        name: newPage.productName,
+        referencePrice: newPage.regularPrice,
+        offerKiniPrice: newPage.offerPrice,
+        category: 'health-beauty',
+        image: newPage.productImage,
+        shortDescription: newPage.subheadline,
+        description: `${newPage.headline} — ${newPage.subheadline}`,
+        deliveryCharge: newPage.deliveryDhaka,
+        variants: [
+          { id: 'v-1', label: newPage.regularWeight, stock: 100 },
+          { id: 'v-2', label: newPage.megaWeight || 'মেগা কম্বো', stock: 50 }
+        ]
+      })
+    }
+
     return c.json({ success: true, landingPage: newPage }, 201)
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
@@ -458,6 +650,27 @@ app.delete('/api/admin/landing-pages/:id', (c) => {
   const id = c.req.param('id')
   const ok = deleteLandingPage(id)
   return c.json({ success: ok, error: ok ? undefined : 'Landing page not found' })
+})
+
+// Admin Settings APIs (Pixel & Courier)
+app.post('/api/admin/settings/pixel', async (c) => {
+  try {
+    const body = await c.req.json()
+    saveTrackingSettings(body)
+    return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.post('/api/admin/settings/courier', async (c) => {
+  try {
+    const body = await c.req.json()
+    saveCourierSettings(body)
+    return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
 })
 
 // Dynamic Landing Page Route

@@ -1,4 +1,5 @@
 import type { FC } from 'hono/jsx'
+import { renderPixelBaseScript } from '../utils/tracking'
 
 interface DocumentProps {
   title: string
@@ -53,6 +54,7 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
           `
         }} />
         <script src="/static/js/app.js"></script>
+        <div dangerouslySetInnerHTML={{ __html: renderPixelBaseScript() }} />
       </head>
       <body class={bodyClass || 'bg-ok-offwhite text-ok-charcoal'} style="background:#f6f8f6;">
         {children}

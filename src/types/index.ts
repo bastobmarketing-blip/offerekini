@@ -147,6 +147,9 @@ export interface Order {
   createdAt: string
   estimatedDelivery: string
   timeline: OrderTimelineStep[]
+  consignmentId?: string | number
+  trackingCode?: string
+  courierProvider?: string
 }
 
 export interface Customer {

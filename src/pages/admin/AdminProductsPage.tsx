@@ -65,6 +65,12 @@ export const AdminProductsPage: FC = () => {
                       >
                         <i class="fas fa-eye text-[11px]"></i> View
                       </a>
+                      <a
+                        href={`/admin/products/${p.id}/edit`}
+                        class="bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                      >
+                        <i class="fas fa-pen-to-square text-[11px]"></i> Edit
+                      </a>
                       <button
                         type="button"
                         onclick={`deleteProductRow('${p.id}', '${p.name.replace(/'/g, "\\'")}')`}

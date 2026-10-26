@@ -39,7 +39,7 @@ export const MerchantSidebar: FC<{ active: string }> = ({ active }) => (
       ))}
     </nav>
     <div class="p-3 border-t border-white/10">
-      <a href="/merchant/login" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/75 hover:bg-white/10">
+      <a href="/merchant/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/75 hover:bg-white/10">
         <i class="fas fa-arrow-right-from-bracket w-4"></i> Logout
       </a>
     </div>

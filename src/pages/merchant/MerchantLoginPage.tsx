@@ -36,11 +36,35 @@ export const MerchantLoginPage: FC = () => (
 
     <script dangerouslySetInnerHTML={{
       __html: `
-        document.getElementById('merchant-login-form').addEventListener('submit', function (e) {
+        document.getElementById('merchant-login-form').addEventListener('submit', async function (e) {
           e.preventDefault();
           var btn = document.getElementById('merchant-login-btn');
-          btn.innerHTML = '<span class="ok-spinner"></span>';
-          setTimeout(function () { window.location.href = '/merchant/dashboard'; }, 700);
+          var form = document.getElementById('merchant-login-form');
+          btn.disabled = true;
+          btn.innerHTML = '<span class="ok-spinner"></span> যাচাই করা হচ্ছে...';
+
+          var identifier = form.identifier.value.trim();
+          var password = form.password.value;
+
+          try {
+            var res = await fetch('/api/merchant/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ identifier: identifier, password: password })
+            });
+            var data = await res.json();
+            if (data.success) {
+              window.location.href = data.redirect || '/merchant/dashboard';
+            } else {
+              alert('লগইন ব্যর্থ হয়েছে: ' + (data.error || 'ভুল ইউজারনেম বা পাসওয়ার্ড'));
+              btn.disabled = false;
+              btn.innerHTML = 'লগইন করুন';
+            }
+          } catch(err) {
+            alert('সার্ভার এরর: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = 'লগইন করুন';
+          }
         });
       `
     }} />

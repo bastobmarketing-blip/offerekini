@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import type { Order, OrderStatus, OrderTimelineStep, PaymentStatus } from '../types'
 import { products } from './products'
 import { computeOrderPayment } from '../utils/pricing'
@@ -192,5 +194,67 @@ export function createOrder(data: CreateOrderInput): Order {
   }
 
   orders.unshift(newOrder)
+  saveCustomOrders()
   return newOrder
+}
+
+const ORDERS_FILE = path.resolve(process.cwd(), 'data/orders_store.json')
+
+function loadCustomOrders(): Order[] {
+  try {
+    if (fs.existsSync(ORDERS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf-8'))
+      if (Array.isArray(data)) return data
+    }
+  } catch (e) {}
+  return []
+}
+
+function saveCustomOrders(): void {
+  try {
+    const dir = path.dirname(ORDERS_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8')
+  } catch (e) {}
+}
+
+// Load previously saved orders on startup
+const storedOrders = loadCustomOrders()
+if (storedOrders.length > 0) {
+  for (const so of storedOrders) {
+    const idx = orders.findIndex((o) => o.id === so.id)
+    if (idx >= 0) {
+      orders[idx] = so
+    } else {
+      orders.unshift(so)
+    }
+  }
+}
+
+export function updateOrderStatus(orderId: string, status: OrderStatus): Order | null {
+  const order = orders.find((o) => o.id.toLowerCase() === orderId.toLowerCase())
+  if (!order) return null
+
+  order.status = status
+  order.timeline = buildTimeline(status, new Date(order.createdAt))
+  if (status === 'delivered') order.paymentStatus = 'fully_paid'
+  if (status === 'returned') order.paymentStatus = 'refunded'
+
+  saveCustomOrders()
+  return order
+}
+
+export function updateOrderCourier(orderId: string, info: { consignmentId?: string | number; trackingCode?: string; courierProvider?: string }): Order | null {
+  const order = orders.find((o) => o.id.toLowerCase() === orderId.toLowerCase())
+  if (!order) return null
+
+  if (info.consignmentId) order.consignmentId = info.consignmentId
+  if (info.trackingCode) order.trackingCode = info.trackingCode
+  if (info.courierProvider) order.courierProvider = info.courierProvider
+  if (order.status === 'pending' || order.status === 'accepted' || order.status === 'processing') {
+    order.status = 'ready'
+  }
+
+  saveCustomOrders()
+  return order
 }

@@ -14,10 +14,15 @@ import type { Product } from '../../types'
 
 export const ProductDetailPage: FC<{ product: Product }> = ({ product }) => {
   const category = getCategoryBySlug(product.category)
-  const payment = computeOrderPayment(product.offerKiniPrice, 1, product.deliveryCharge)
+  const payment = computeOrderPayment(product.offerKiniPrice, 1, product.deliveryCharge || 60)
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4)
   const isOutOfStock = product.stockStatus === 'out_of_stock'
   const howToUseVideoId = extractYouTubeId(product.videoUrl)
+  const gallery = product.gallery && product.gallery.length ? product.gallery : [product.image]
+  const variants = product.variants && product.variants.length ? product.variants : [{ id: 'v-default', label: 'স্ট্যান্ডার্ড প্যাক', stock: product.stock || 50 }]
+  const benefits = product.benefits || []
+  const specifications = product.specifications || []
+  const reviewProofs = product.reviewProofs || []
 
   return (
     <CustomerLayout title={product.name} description={product.shortDescription}>
@@ -40,9 +45,9 @@ export const ProductDetailPage: FC<{ product: Product }> = ({ product }) => {
                 </div>
               )}
             </div>
-            {product.gallery.length > 1 && (
+            {gallery.length > 1 && (
               <div class="flex gap-2 mt-3">
-                {product.gallery.map((img) => (
+                {gallery.map((img) => (
                   <button
                     class="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 hover:border-ok-green-800"
                     onclick={`document.getElementById('pdp-main-image').src='${img}'`}
@@ -101,11 +106,11 @@ export const ProductDetailPage: FC<{ product: Product }> = ({ product }) => {
             <p class="text-sm text-ok-gray-600 leading-relaxed mb-5">{product.shortDescription}</p>
 
             {/* Variants */}
-            {product.variants.length > 1 && (
-              <div class="mb-5" data-selected-variant={product.variants[0].id} data-selected-variant-label={product.variants[0].label}>
+            {variants.length > 1 && (
+              <div class="mb-5" data-selected-variant={variants[0].id} data-selected-variant-label={variants[0].label}>
                 <p class="text-sm font-semibold mb-2">ভ্যারিয়েন্ট বাছাই করুন</p>
                 <div class="flex gap-2 flex-wrap">
-                  {product.variants.map((v, i) => (
+                  {variants.map((v, i) => (
                     <button
                       data-variant-btn
                       data-vid={v.id}
@@ -196,24 +201,32 @@ export const ProductDetailPage: FC<{ product: Product }> = ({ product }) => {
             <h3 class="font-bold text-lg mb-3">পণ্যের বিস্তারিত</h3>
             <p class="text-sm text-ok-gray-600 leading-relaxed mb-5">{product.description}</p>
 
-            <h4 class="font-bold text-sm mb-2">সুবিধা</h4>
-            <ul class="space-y-2 mb-5">
-              {product.benefits.map((b) => (
-                <li class="flex items-start gap-2 text-sm text-ok-gray-600">
-                  <i class="fas fa-circle-check text-ok-green-700 mt-0.5"></i> {b}
-                </li>
-              ))}
-            </ul>
+            {benefits.length > 0 && (
+              <>
+                <h4 class="font-bold text-sm mb-2">সুবিধা</h4>
+                <ul class="space-y-2 mb-5">
+                  {benefits.map((b) => (
+                    <li class="flex items-start gap-2 text-sm text-ok-gray-600">
+                      <i class="fas fa-circle-check text-ok-green-700 mt-0.5"></i> {b}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
 
-            <h4 class="font-bold text-sm mb-2">স্পেসিফিকেশন</h4>
-            <div class="grid sm:grid-cols-2 gap-2">
-              {product.specifications.map((s) => (
-                <div class="flex justify-between text-sm border-b border-gray-50 py-2">
-                  <span class="text-ok-gray-500">{s.label}</span>
-                  <span class="font-medium">{s.value}</span>
+            {specifications.length > 0 && (
+              <>
+                <h4 class="font-bold text-sm mb-2">স্পেসিফিকেশন</h4>
+                <div class="grid sm:grid-cols-2 gap-2">
+                  {specifications.map((s) => (
+                    <div class="flex justify-between text-sm border-b border-gray-50 py-2">
+                      <span class="text-ok-gray-500">{s.label}</span>
+                      <span class="font-medium">{s.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
           <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 h-fit">
@@ -243,13 +256,13 @@ export const ProductDetailPage: FC<{ product: Product }> = ({ product }) => {
         </div>
 
         {/* ============ CUSTOMER REVIEWS (TRUST SLIDER) ============ */}
-        {product.reviewProofs.length > 0 && (
+        {reviewProofs.length > 0 && (
           <div class="mt-6 bg-white rounded-2xl border border-gray-100 p-5 sm:p-6">
             <h3 class="font-bold text-lg mb-1 flex items-center gap-2">
               <i class="fas fa-comments text-ok-green-800"></i> কাস্টমার রিভিউ
             </h3>
             <p class="text-sm text-ok-gray-500 mb-4">যারা আগে অর্ডার করেছেন তাদের রিভিউ দেখুন।</p>
-            <ReviewProofSlider productId={product.id} proofs={product.reviewProofs} />
+            <ReviewProofSlider productId={product.id} proofs={reviewProofs} />
           </div>
         )}
 
