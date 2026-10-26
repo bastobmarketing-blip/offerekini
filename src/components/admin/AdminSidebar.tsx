@@ -11,6 +11,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/dashboard', icon: 'fa-gauge', label: 'Dashboard', key: 'dashboard' },
   { href: '/admin/merchants', icon: 'fa-store', label: 'Merchants', key: 'merchants' },
   { href: '/admin/products', icon: 'fa-box', label: 'Products', key: 'products' },
+  { href: '/admin/landing-pages', icon: 'fa-file-lines', label: 'Landing Pages', key: 'landing-pages' },
   { href: '/admin/products/pending', icon: 'fa-hourglass-half', label: 'Pending Approval', key: 'pending' },
   { href: '/admin/orders', icon: 'fa-receipt', label: 'Orders', key: 'orders' },
   { href: '/admin/categories', icon: 'fa-tags', label: 'Categories', key: 'categories' },

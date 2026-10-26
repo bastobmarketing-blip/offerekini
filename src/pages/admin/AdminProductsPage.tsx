@@ -7,16 +7,25 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 export const AdminProductsPage: FC = () => {
   return (
     <AdminLayout title="Products" active="products">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 class="text-xl font-bold text-ok-charcoal">All Products</h1>
-          <p class="text-xs text-ok-gray-500">প্ল্যাটফর্মের সকল প্রোডাক্টের তালিকা</p>
+          <h1 class="text-xl font-bold text-ok-charcoal">All Products ({products.length})</h1>
+          <p class="text-xs text-ok-gray-500">প্ল্যাটফর্মের সকল প্রোডাক্টের তালিকা ও ম্যানেজমেন্ট</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            href="/admin/products/new"
+            class="bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm transition-all"
+          >
+            <i class="fas fa-plus"></i>
+            <span>Add New Product</span>
+          </a>
         </div>
       </div>
 
       <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-ok-card">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full text-left text-sm" id="products-table">
             <thead class="bg-gray-50 text-ok-gray-500 font-semibold border-b border-gray-100 text-xs">
               <tr>
                 <th class="p-4">Product</th>
@@ -25,18 +34,18 @@ export const AdminProductsPage: FC = () => {
                 <th class="p-4">OfferKini Price</th>
                 <th class="p-4">Savings</th>
                 <th class="p-4">Status</th>
-                <th class="p-4">Action</th>
+                <th class="p-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
               {products.map((p) => (
-                <tr class="hover:bg-gray-50/60 transition-colors">
+                <tr id={`row-${p.id}`} class="hover:bg-gray-50/60 transition-colors">
                   <td class="p-4">
                     <div class="flex items-center gap-3">
-                      <img src={p.image} class="w-12 h-12 rounded-xl object-cover bg-gray-50 shrink-0" />
+                      <img src={p.image} class="w-12 h-12 rounded-xl object-cover bg-gray-50 shrink-0 border border-gray-100" />
                       <div>
                         <p class="font-bold text-ok-charcoal line-clamp-1">{p.name}</p>
-                        <p class="text-xs text-ok-gray-400">ID: {p.id}</p>
+                        <p class="text-xs text-ok-gray-400">SKU: {p.sku || p.id}</p>
                       </div>
                     </div>
                   </td>
@@ -47,10 +56,24 @@ export const AdminProductsPage: FC = () => {
                   <td class="p-4">
                     <StatusBadge status={p.status} />
                   </td>
-                  <td class="p-4">
-                    <a href={`/product/${p.slug}`} target="_blank" class="bg-ok-green-50 text-ok-green-800 hover:bg-ok-green-100 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors inline-block">
-                      View
-                    </a>
+                  <td class="p-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <a
+                        href={`/product/${p.slug}`}
+                        target="_blank"
+                        class="bg-ok-green-50 text-ok-green-800 hover:bg-ok-green-100 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                      >
+                        <i class="fas fa-eye text-[11px]"></i> View
+                      </a>
+                      <button
+                        type="button"
+                        onclick={`deleteProductRow('${p.id}', '${p.name.replace(/'/g, "\\'")}')`}
+                        class="bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+                        title="Delete Product"
+                      >
+                        <i class="fas fa-trash-alt text-[11px]"></i> Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -58,6 +81,32 @@ export const AdminProductsPage: FC = () => {
           </table>
         </div>
       </div>
+
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          async function deleteProductRow(id, name) {
+            if (!confirm('আপনি কি নিশ্চিতভাবে "' + name + '" প্রোডাক্টটি ডিলিট করতে চান?')) {
+              return;
+            }
+            try {
+              const res = await fetch('/api/admin/products/' + id, { method: 'DELETE' });
+              const data = await res.json();
+              if (data.success) {
+                const row = document.getElementById('row-' + id);
+                if (row) {
+                  row.style.opacity = '0.3';
+                  row.style.backgroundColor = '#fee2e2';
+                  setTimeout(() => row.remove(), 400);
+                }
+              } else {
+                alert('ডিলিট করতে সমস্যা হয়েছে: ' + (data.error || 'Unknown error'));
+              }
+            } catch (err) {
+              alert('সার্ভার এরর: ' + err.message);
+            }
+          }
+        `
+      }} />
     </AdminLayout>
   )
 }

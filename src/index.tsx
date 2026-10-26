@@ -52,7 +52,12 @@ import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { AdminMerchantsPage } from './pages/admin/AdminMerchantsPage'
 import { AdminProductsPage } from './pages/admin/AdminProductsPage'
+import { AdminAddProductPage } from './pages/admin/AdminAddProductPage'
+import { AdminLandingPagesPage } from './pages/admin/AdminLandingPagesPage'
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
+import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
+import { addProduct, deleteProduct } from './data/products'
+import { getAllLandingPages, getLandingPageBySlug, createLandingPage, deleteLandingPage } from './data/landingPages'
 
 const app = new Hono()
 
@@ -336,6 +341,18 @@ app.get('/account/order/:id', (c) => {
   return c.html(<AccountOrderDetailPage order={order} />)
 })
 
+// Dynamic Landing Page Route (e.g. /my-offer or /l/my-offer)
+app.get('/:slug', async (c, next) => {
+  const slug = c.req.param('slug')
+  const lp = getLandingPageBySlug(slug)
+  if (lp) {
+    if (lp.slug === 'focus_king') return c.redirect('/focus_king')
+    if (lp.slug === 'testo_king') return c.redirect('/testo_king/')
+    return c.html(<DynamicLandingPage config={lp} />)
+  }
+  return await next()
+})
+
 // ==========================================================================
 // MERCHANT ROUTES
 // ==========================================================================
@@ -389,12 +406,66 @@ app.get('/merchant/profile', (c) => {
 app.get('/merchant/settings', (c) => c.html(<MerchantSettingsPage />))
 
 // ==========================================================================
-// ADMIN ROUTES
+// ADMIN ROUTES & CONTROLS
 // ==========================================================================
+app.get('/admin', (c) => c.redirect('/admin/dashboard'))
+app.get('/admin/', (c) => c.redirect('/admin/dashboard'))
 app.get('/admin/login', (c) => c.html(<AdminLoginPage />))
 app.get('/admin/dashboard', (c) => c.html(<AdminDashboardPage />))
 app.get('/admin/merchants', (c) => c.html(<AdminMerchantsPage />))
 app.get('/admin/products', (c) => c.html(<AdminProductsPage />))
+app.get('/admin/products/new', (c) => c.html(<AdminAddProductPage />))
+app.get('/admin/landing-pages', (c) => c.html(<AdminLandingPagesPage />))
 app.get('/admin/orders', (c) => c.html(<AdminOrdersPage />))
+
+// Admin Product APIs
+app.get('/api/admin/products', (c) => c.json({ success: true, products }))
+app.post('/api/admin/products', async (c) => {
+  try {
+    const body = await c.req.json()
+    if (!body.name || !body.offerKiniPrice) {
+      return c.json({ success: false, error: 'Product name and price are required' }, 400)
+    }
+    const newProduct = addProduct(body)
+    return c.json({ success: true, product: newProduct }, 201)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.delete('/api/admin/products/:id', (c) => {
+  const id = c.req.param('id')
+  const ok = deleteProduct(id)
+  return c.json({ success: ok, error: ok ? undefined : 'Product not found' })
+})
+
+// Admin Landing Pages APIs
+app.get('/api/admin/landing-pages', (c) => c.json({ success: true, landingPages: getAllLandingPages() }))
+app.post('/api/admin/landing-pages', async (c) => {
+  try {
+    const body = await c.req.json()
+    if (!body.slug || !body.productName) {
+      return c.json({ success: false, error: 'Slug and product name are required' }, 400)
+    }
+    const newPage = createLandingPage(body)
+    return c.json({ success: true, landingPage: newPage }, 201)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.delete('/api/admin/landing-pages/:id', (c) => {
+  const id = c.req.param('id')
+  const ok = deleteLandingPage(id)
+  return c.json({ success: ok, error: ok ? undefined : 'Landing page not found' })
+})
+
+// Dynamic Landing Page Route
+app.get('/l/:slug', (c) => {
+  const slug = c.req.param('slug')
+  const lp = getLandingPageBySlug(slug)
+  if (!lp) return c.notFound()
+  return c.html(<DynamicLandingPage config={lp} />)
+})
 
 export default app

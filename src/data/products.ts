@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import type { Product, ReviewProof } from '../types'
 import { calcSavings, calcSavingsPercent } from '../utils/pricing'
 
@@ -636,3 +638,127 @@ export function searchProducts(query: string): Product[] {
       p.category.toLowerCase().includes(q)
   )
 }
+
+// =============================================================================
+// PERSISTENT CUSTOM PRODUCTS STORAGE & MANAGEMENT
+// =============================================================================
+const CUSTOM_PRODUCTS_FILE = path.resolve(process.cwd(), 'data/custom_products.json')
+const DELETED_PRODUCTS_FILE = path.resolve(process.cwd(), 'data/deleted_products.json')
+
+function loadDeletedIds(): Set<string> {
+  try {
+    if (fs.existsSync(DELETED_PRODUCTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DELETED_PRODUCTS_FILE, 'utf-8'))
+      if (Array.isArray(data)) return new Set(data)
+    }
+  } catch (e) {}
+  return new Set()
+}
+
+function saveDeletedIds(ids: Set<string>): void {
+  try {
+    const dir = path.dirname(DELETED_PRODUCTS_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(DELETED_PRODUCTS_FILE, JSON.stringify(Array.from(ids), null, 2), 'utf-8')
+  } catch (e) {}
+}
+
+function loadCustomProducts(): Product[] {
+  try {
+    if (fs.existsSync(CUSTOM_PRODUCTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(CUSTOM_PRODUCTS_FILE, 'utf-8'))
+      if (Array.isArray(data)) {
+        return data.map((p: any) => withSavings(p))
+      }
+    }
+  } catch (e) {}
+  return []
+}
+
+function saveCustomProducts(): void {
+  try {
+    const dir = path.dirname(CUSTOM_PRODUCTS_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    const customOnly = products.filter((p) => p.id.startsWith('p-custom-'))
+    fs.writeFileSync(CUSTOM_PRODUCTS_FILE, JSON.stringify(customOnly, null, 2), 'utf-8')
+  } catch (e) {}
+}
+
+// Remove previously deleted products
+const deletedIds = loadDeletedIds()
+if (deletedIds.size > 0) {
+  for (let i = products.length - 1; i >= 0; i--) {
+    if (deletedIds.has(products[i].id)) {
+      products.splice(i, 1)
+    }
+  }
+}
+
+// Merge stored custom products
+const customList = loadCustomProducts()
+for (const cp of customList) {
+  if (!products.some((p) => p.id === cp.id) && !deletedIds.has(cp.id)) {
+    products.unshift(cp)
+  }
+}
+
+export function addProduct(p: Partial<Product> & { name: string; offerKiniPrice: number; referencePrice: number; category: string }): Product {
+  const id = p.id || `p-custom-${Date.now()}`
+  const slug = p.slug || p.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `product-${Date.now()}`
+  
+  const newProduct: Product = withSavings({
+    id,
+    slug,
+    name: p.name,
+    nameEn: p.nameEn || p.name,
+    category: p.category || 'lifestyle',
+    merchantId: p.merchantId || 'mer-1',
+    image: p.image || '/static/images/brand/offerkini-logo.png',
+    gallery: p.gallery && p.gallery.length ? p.gallery : [p.image || '/static/images/brand/offerkini-logo.png'],
+    referencePrice: Number(p.referencePrice) || Number(p.offerKiniPrice),
+    offerKiniPrice: Number(p.offerKiniPrice),
+    stockStatus: p.stockStatus || 'in_stock',
+    stock: Number(p.stock) || 50,
+    badge: p.badge || 'true_price',
+    status: 'approved',
+    rating: 5.0,
+    reviewCount: 1,
+    shortDescription: p.shortDescription || p.description || p.name,
+    description: p.description || p.name,
+    benefits: p.benefits && p.benefits.length ? p.benefits : ['প্রিমিয়াম কোয়ালিটি', '১০০% অরিজিনাল পণ্য', 'ক্যাশ অন ডেলিভারি'],
+    specifications: p.specifications || [{ label: 'ক্যাটাগরি', value: p.category }],
+    variants: p.variants || [{ id: 'v-1', label: 'স্ট্যান্ডার্ড', stock: Number(p.stock) || 50 }],
+    sku: p.sku || `OK-PR-${Math.floor(1000 + Math.random() * 9000)}`,
+    weightGrams: Number(p.weightGrams) || 500,
+    supplyPrice: Number(p.supplyPrice) || Math.round(Number(p.offerKiniPrice) * 0.7),
+    deliveryCharge: Number(p.deliveryCharge) || 60,
+    videoUrl: p.videoUrl || HOW_TO_USE_VIDEO_URL,
+    reviewProofs: defaultReviewProofs(),
+    isFeatured: p.isFeatured ?? true,
+    isNewArrival: true,
+    isTruePrice: true,
+    createdAt: new Date().toISOString().split('T')[0]
+  })
+
+  if (deletedIds.has(id)) {
+    deletedIds.delete(id)
+    saveDeletedIds(deletedIds)
+  }
+
+  products.unshift(newProduct)
+  saveCustomProducts()
+  return newProduct
+}
+
+export function deleteProduct(id: string): boolean {
+  const index = products.findIndex((p) => p.id === id)
+  if (index >= 0) {
+    products.splice(index, 1)
+    deletedIds.add(id)
+    saveDeletedIds(deletedIds)
+    saveCustomProducts()
+    return true
+  }
+  return false
+}
+
