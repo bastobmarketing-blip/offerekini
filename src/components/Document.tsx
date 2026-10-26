@@ -22,6 +22,8 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
         {description && <meta name="description" content={description} />}
         <link rel="icon" type="image/png" href="/static/images/brand/offerkini-logo.png" />
 
+        {raw(renderPixelBaseScript())}
+
         <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
 
@@ -55,7 +57,6 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
           `
         }} />
         <script src="/static/js/app.js"></script>
-        {raw(renderPixelBaseScript())}
       </head>
       <body class={bodyClass || 'bg-ok-offwhite text-ok-charcoal'} style="background:#f6f8f6;">
         {children}

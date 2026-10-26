@@ -326,8 +326,12 @@ app.get('/testo_king/', async (c) => {
     if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf-8')
       const pixelScript = renderPixelBaseScript()
-      if (pixelScript && content.includes('</head>')) {
-        content = content.replace('</head>', `${pixelScript}\n</head>`)
+      if (pixelScript) {
+        if (content.includes('<!-- Meta Pixel Code -->')) {
+          content = content.replace(/<!-- Meta Pixel Code -->[\s\S]*?<!-- End Meta Pixel Code -->/, pixelScript)
+        } else if (content.includes('<head>')) {
+          content = content.replace('<head>', `<head>\n${pixelScript}\n`)
+        }
       }
       return c.html(content)
     }
