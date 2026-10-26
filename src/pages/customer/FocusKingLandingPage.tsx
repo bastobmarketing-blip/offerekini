@@ -1180,14 +1180,44 @@ export const FocusKingLandingPage: FC = () => {
               } else {
                 // Cash on Delivery
                 if (typeof fbq === 'function') {
-                  fbq('track', 'Purchase', {
-                    value: grandTotal,
-                    currency: 'BDT',
-                    content_name: 'Focus King',
-                    content_type: 'product'
-                  });
+                  try {
+                    fbq('track', 'Purchase', {
+                      value: grandTotal,
+                      currency: 'BDT',
+                      content_name: 'Focus King — ' + pkgName,
+                      content_type: 'product'
+                    });
+                  } catch (e) {}
                 }
-                window.location.href = '/order-success';
+
+                // Send order to server to record in database & trigger Server-Side Meta CAPI
+                fetch('/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    name: name,
+                    phone: phone,
+                    address: address + ', ' + district,
+                    product: 'Focus King — ' + pkgName,
+                    price: pkgPrice,
+                    delivery: deliveryCharge,
+                    total: grandTotal,
+                    package: isMega ? '1kg' : '500g'
+                  })
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                  if (data && data.order) {
+                    localStorage.setItem('offerkini_last_order', JSON.stringify(data.order));
+                    var existing = JSON.parse(localStorage.getItem('offerkini_orders') || '[]');
+                    existing.unshift(data.order);
+                    localStorage.setItem('offerkini_orders', JSON.stringify(existing));
+                  }
+                  window.location.href = '/order-success';
+                })
+                .catch(function(err) {
+                  window.location.href = '/order-success';
+                });
               }
             });
           }

@@ -665,6 +665,28 @@ app.delete('/api/admin/landing-pages/:id', (c) => {
   return c.json({ success: ok, error: ok ? undefined : 'Landing page not found' })
 })
 
+// Server-side Purchase Tracking trigger (CAPI)
+app.post('/api/tracking/purchase', async (c) => {
+  try {
+    const body = await c.req.json()
+    const ok = await sendMetaServerEvent({
+      eventName: 'Purchase',
+      orderId: body.orderId,
+      productName: body.productName,
+      value: Number(body.value) || 0,
+      currency: body.currency || 'BDT',
+      phone: body.phone,
+      name: body.name,
+      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
+      userAgent: c.req.header('user-agent'),
+      sourceUrl: body.sourceUrl || c.req.url
+    })
+    return c.json({ success: ok })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 // Admin Settings APIs (Pixel & Courier)
 app.post('/api/admin/settings/pixel', async (c) => {
   try {
