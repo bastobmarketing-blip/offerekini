@@ -64,7 +64,7 @@ import { addProduct, deleteProduct, updateProduct } from './data/products'
 import { updateOrderStatus, updateOrderCourier } from './data/orders'
 import { getAllLandingPages, getLandingPageBySlug, getLandingPageForProduct, getLandingPageUrl, createLandingPage, deleteLandingPage } from './data/landingPages'
 import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
-import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings } from './utils/tracking'
+import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings, renderPixelBaseScript } from './utils/tracking'
 
 const app = new Hono()
 
@@ -324,7 +324,12 @@ app.get('/testo_king/', async (c) => {
     const path = await import('node:path')
     const filePath = path.resolve(process.cwd(), 'public/testo_king/index.html')
     if (fs.existsSync(filePath)) {
-      return c.html(fs.readFileSync(filePath, 'utf-8'))
+      let content = fs.readFileSync(filePath, 'utf-8')
+      const pixelScript = renderPixelBaseScript()
+      if (pixelScript && content.includes('</head>')) {
+        content = content.replace('</head>', `${pixelScript}\n</head>`)
+      }
+      return c.html(content)
     }
   } catch (e) {}
   return c.redirect('/testo_king/index.html')

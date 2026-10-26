@@ -10,18 +10,54 @@ export interface TrackingSettings {
 }
 
 const SETTINGS_FILE = path.resolve(process.cwd(), 'data/tracking_settings.json')
+const ENV_FILE = path.resolve(process.cwd(), '.env')
 
 const DEFAULT_SETTINGS: TrackingSettings = {
-  pixelId: process.env.META_PIXEL_ID || '',
-  accessToken: process.env.META_ACCESS_TOKEN || '',
-  testEventCode: '',
+  pixelId: process.env.META_PIXEL_ID || '1592469171544877',
+  accessToken: process.env.META_ACCESS_TOKEN || 'EAAEW7ngIMZB4BS9PiMkopwZBvCGgySngNZBhEpIkKjXKgCh7Ni5ZA6h7D6H1ZBy47aZC0ZB7oTjojRbjB4EE01uZAVn55KSszwYtuxZCBWv4p2DUrrMZAo5W9njnjHCocVmZAxwGrj0qT7oj4X08rb4s4qmAd5t6pZCmRTCW2oviFGApwfEGBAluCZBWigMuZAaYJlvaOenQZDZD',
+  testEventCode: process.env.META_TEST_EVENT_CODE || 'TEST24540',
   enabled: true
+}
+
+export function syncTrackingToEnv(settings: TrackingSettings): void {
+  try {
+    let content = ''
+    if (fs.existsSync(ENV_FILE)) {
+      content = fs.readFileSync(ENV_FILE, 'utf-8')
+    }
+
+    const setOrReplace = (key: string, val: string) => {
+      const reg = new RegExp(`^${key}=.*$`, 'm')
+      if (reg.test(content)) {
+        content = content.replace(reg, `${key}=${val}`)
+      } else {
+        content = (content.trim() ? content.trim() + '\n' : '') + `${key}=${val}\n`
+      }
+      process.env[key] = val
+    }
+
+    if (settings.pixelId) setOrReplace('META_PIXEL_ID', settings.pixelId)
+    if (settings.accessToken) setOrReplace('META_ACCESS_TOKEN', settings.accessToken)
+    if (settings.testEventCode) setOrReplace('META_TEST_EVENT_CODE', settings.testEventCode)
+
+    fs.writeFileSync(ENV_FILE, content, 'utf-8')
+  } catch (e) {
+    console.error('Failed to sync tracking to .env:', e)
+  }
 }
 
 export function getTrackingSettings(): TrackingSettings {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'))
+      const parsed = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'))
+      if (parsed && parsed.pixelId) {
+        return {
+          pixelId: parsed.pixelId || DEFAULT_SETTINGS.pixelId,
+          accessToken: parsed.accessToken || DEFAULT_SETTINGS.accessToken,
+          testEventCode: parsed.testEventCode ?? DEFAULT_SETTINGS.testEventCode,
+          enabled: parsed.enabled ?? true
+        }
+      }
     }
   } catch (e) {}
   return DEFAULT_SETTINGS
@@ -32,7 +68,10 @@ export function saveTrackingSettings(settings: TrackingSettings): void {
     const dir = path.dirname(SETTINGS_FILE)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
-  } catch (e) {}
+    syncTrackingToEnv(settings)
+  } catch (e) {
+    console.error('Failed to save tracking settings:', e)
+  }
 }
 
 export function hashSha256(val: string): string {

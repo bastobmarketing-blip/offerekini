@@ -939,6 +939,14 @@ $("#orderForm").addEventListener("submit", async e => {
         existing.unshift(resData.order);
         localStorage.setItem('offerkini_orders', JSON.stringify(existing));
       }
+      if (typeof fbq === 'function') {
+        fbq('track', 'Purchase', {
+          value: data.total,
+          currency: 'BDT',
+          content_name: data.product,
+          content_type: 'product'
+        });
+      }
     } catch(err){}
     f.reset(); $$("input[name=package]").forEach(r => r.checked = r.value === CONFIG.defaultPackage); calc(); say("ok", "ধন্যবাদ! আপনার অর্ডার পেয়েছি। শীঘ্রই কল করে নিশ্চিত করা হবে।");
   } catch { say("err", "অর্ডার পাঠানো যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"); }

@@ -1179,6 +1179,14 @@ export const FocusKingLandingPage: FC = () => {
                 });
               } else {
                 // Cash on Delivery
+                if (typeof fbq === 'function') {
+                  fbq('track', 'Purchase', {
+                    value: grandTotal,
+                    currency: 'BDT',
+                    content_name: 'Focus King',
+                    content_type: 'product'
+                  });
+                }
                 window.location.href = '/order-success';
               }
             });

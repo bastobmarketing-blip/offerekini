@@ -33,7 +33,7 @@ export const AdminSettingsPage: FC = () => {
               <input
                 type="text"
                 name="pixelId"
-                defaultValue={tracking.pixelId}
+                value={tracking.pixelId}
                 placeholder="যেমন: 123456789012345"
                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
               />
@@ -56,7 +56,7 @@ export const AdminSettingsPage: FC = () => {
               <input
                 type="text"
                 name="testEventCode"
-                defaultValue={tracking.testEventCode || ''}
+                value={tracking.testEventCode || ''}
                 placeholder="TEST12345"
                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
               />
@@ -90,7 +90,7 @@ export const AdminSettingsPage: FC = () => {
               <input
                 type="text"
                 name="apiKey"
-                defaultValue={courier.apiKey}
+                value={courier.apiKey}
                 placeholder="Steadfast API Key"
                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
               />
@@ -101,7 +101,7 @@ export const AdminSettingsPage: FC = () => {
               <input
                 type="password"
                 name="secretKey"
-                defaultValue={courier.secretKey}
+                value={courier.secretKey}
                 placeholder="Steadfast Secret Key"
                 class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
               />

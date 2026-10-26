@@ -107,6 +107,17 @@ export const OrderSuccessPage: FC = () => (
         document.getElementById('order-success-delivery-info').innerHTML =
           '<p><span class="text-ok-charcoal font-medium">' + order.customerName + '</span> — ' + order.customerPhone + '</p>' +
           '<p>' + (order.address || '') + ', ' + (order.area || '') + ', ' + (order.district || '') + '</p>';
+
+        if (typeof fbq === 'function' && !window._fbq_purchase_tracked) {
+          window._fbq_purchase_tracked = true;
+          var totalVal = (order.totalAmount || (advanceAmt + dueAmt) || 0);
+          fbq('track', 'Purchase', {
+            value: totalVal,
+            currency: 'BDT',
+            content_name: (order.items && order.items[0] && order.items[0].productName) || 'Order Purchase',
+            content_type: 'product'
+          });
+        }
       })();
       `
     }} />
