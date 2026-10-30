@@ -772,10 +772,38 @@ app.delete('/api/admin/landing-pages/:id', (c) => {
   return c.json({ success: ok, error: ok ? undefined : 'Landing page not found' })
 })
 
+// Server-side PageView Tracking trigger (CAPI)
+app.post('/api/tracking/pageview', async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}))
+    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
+    const userAgent = c.req.header('user-agent')
+    const fbp = getCookie(c, '_fbp') || body.fbp
+    const fbc = getCookie(c, '_fbc') || body.fbc
+
+    const ok = await sendMetaServerEvent({
+      eventName: 'PageView',
+      clientIp,
+      userAgent,
+      fbp,
+      fbc,
+      sourceUrl: body.sourceUrl || c.req.url
+    })
+    return c.json({ success: ok })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 // Server-side Purchase Tracking trigger (CAPI)
 app.post('/api/tracking/purchase', async (c) => {
   try {
     const body = await c.req.json()
+    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
+    const userAgent = c.req.header('user-agent')
+    const fbp = getCookie(c, '_fbp') || body.fbp
+    const fbc = getCookie(c, '_fbc') || body.fbc
+
     const ok = await sendMetaServerEvent({
       eventName: 'Purchase',
       orderId: body.orderId,
@@ -784,8 +812,10 @@ app.post('/api/tracking/purchase', async (c) => {
       currency: body.currency || 'BDT',
       phone: body.phone,
       name: body.name,
-      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
-      userAgent: c.req.header('user-agent'),
+      clientIp,
+      userAgent,
+      fbp,
+      fbc,
       sourceUrl: body.sourceUrl || c.req.url
     })
     return c.json({ success: ok })

@@ -97,6 +97,15 @@ export function renderPixelBaseScript(): string {
       'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', '${settings.pixelId}');
       fbq('track', 'PageView');
+      try {
+        var _fbp = (document.cookie.match(/(^|; )_fbp=([^;]*)/)||[])[2];
+        var _fbc = (document.cookie.match(/(^|; )_fbc=([^;]*)/)||[])[2];
+        fetch('/api/tracking/pageview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceUrl: window.location.href, fbp: _fbp, fbc: _fbc })
+        }).catch(function(){});
+      } catch(e){}
     </script>
     <noscript>
       <img height="1" width="1" style="display:none"
@@ -107,7 +116,7 @@ export function renderPixelBaseScript(): string {
 }
 
 export interface MetaCapiEventParams {
-  eventName: 'Purchase' | 'InitiateCheckout' | 'AddToCart' | 'Lead' | 'ViewContent'
+  eventName: 'Purchase' | 'InitiateCheckout' | 'AddToCart' | 'Lead' | 'ViewContent' | 'PageView'
   orderId?: string
   productName?: string
   value?: number
