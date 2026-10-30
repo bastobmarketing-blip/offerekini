@@ -68,6 +68,7 @@ import { AdminDealsPage } from './pages/admin/AdminDealsPage'
 import { AdminPendingProductsPage } from './pages/admin/AdminPendingProductsPage'
 import { AdminHomepagePage } from './pages/admin/AdminHomepagePage'
 import { getHomepageSetting, saveHomepageSetting } from './data/homepage'
+import { scanLandingPageSections, getSectionVisibility, saveSectionVisibility, applySectionVisibilityToHtml } from './data/landingSections'
 import { getAdminCredentials, verifyAdminPassword, updateAdminPassword, resetAdminPassword } from './data/admin'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
 import { addProduct, deleteProduct, updateProduct, bindProductToMerchant } from './data/products'
@@ -306,7 +307,7 @@ app.get('/payment/success', async (c) => {
 app.get('/payment/fail', (c) => c.redirect('/checkout?error=payment_failed'))
 app.get('/payment/cancel', (c) => c.redirect('/checkout?error=payment_cancelled'))
 
-// Helper to read and inject Meta Pixel into Testo King static landing page
+// Helper to read, apply section visibility and inject Meta Pixel into Testo King static landing page
 async function getTestoKingHtml(): Promise<string | null> {
   try {
     const fs = await import('node:fs')
@@ -314,6 +315,10 @@ async function getTestoKingHtml(): Promise<string | null> {
     const filePath = path.resolve(process.cwd(), 'public/testo_king/index.html')
     if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf-8')
+
+      // Apply dynamic section visibility (Elementor-style On/Off)
+      content = applySectionVisibilityToHtml(content, getSectionVisibility('testo_king'))
+
       const pixelScript = renderPixelBaseScript()
       if (pixelScript) {
         if (content.includes('<!-- Meta Pixel Code -->')) {
@@ -1039,6 +1044,24 @@ app.post('/api/admin/homepage-settings', async (c) => {
     const body = await c.req.json()
     const updated = saveHomepageSetting(body)
     return c.json({ success: true, setting: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Landing Page Sections APIs (Auto-Discovery & Elementor-style Toggle)
+app.get('/api/admin/landing-pages/:slug/sections', (c) => {
+  const slug = c.req.param('slug')
+  const sections = scanLandingPageSections(slug)
+  return c.json({ success: true, slug, sections })
+})
+
+app.post('/api/admin/landing-pages/:slug/sections', async (c) => {
+  try {
+    const slug = c.req.param('slug')
+    const body = await c.req.json()
+    const updated = saveSectionVisibility(slug, body.visibility || {})
+    return c.json({ success: true, slug, visibility: updated })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }

@@ -83,6 +83,15 @@ export const AdminLandingPagesPage: FC = () => {
                   </td>
                   <td class="p-4 text-right">
                     <div class="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onclick={`openSectionManager('${lp.slug}', '${(lp.productName || lp.headline || lp.slug).replace(/'/g, "\\'")}')`}
+                        class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5 shadow-xs"
+                        title="Elementor-Style Section Toggle"
+                      >
+                        <i class="fas fa-layer-group text-[11px]"></i>
+                        <span>Sections</span>
+                      </button>
                       <a
                         href={`/${lp.slug}`}
                         target="_blank"
@@ -104,6 +113,72 @@ export const AdminLandingPagesPage: FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* SECTION MANAGER MODAL (Elementor-Style) */}
+      <div id="manage-sections-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8">
+          <div class="flex items-center justify-between border-b pb-4 mb-5">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                  <i class="fas fa-layer-group text-sm"></i>
+                </span>
+                <h2 class="text-lg font-black text-slate-900" id="sec-modal-title">ল্যান্ডিং পেজ সেকশন ম্যানেজার</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-1" id="sec-modal-subtitle">
+                Elementor-এর মতো পেজের যেকোনো সেকশন অন বা অফ রাখুন
+              </p>
+            </div>
+            <button
+              type="button"
+              onclick="closeSectionManager()"
+              class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3.5 mb-5 flex items-start gap-3">
+            <span class="text-lg">⚡</span>
+            <div class="text-xs text-indigo-950">
+              <p class="font-bold">স্বয়ংক্রিয় সেকশন আবিষ্কার (Auto-Discovery Engine)</p>
+              <p class="text-indigo-800/80 mt-0.5">
+                ল্যান্ডিং পেজের কোডে নতুন কোনো উপাদান বা সেকশন যোগ হলে তা স্বয়ংক্রিয়ভাবে এখানে তালিকাভুক্ত হয়ে যাবে।
+              </p>
+            </div>
+          </div>
+
+          {/* DYNAMIC SECTIONS LIST */}
+          <div id="sections-loading" class="py-8 text-center text-xs text-gray-400">
+            <span class="ok-spinner mr-2"></span> সেকশন লোড হচ্ছে...
+          </div>
+
+          <form id="manage-sections-form" class="space-y-3">
+            <div id="sections-list-container" class="space-y-2.5 max-h-[45vh] overflow-y-auto pr-1"></div>
+
+            <div class="pt-5 border-t border-gray-100 flex items-center justify-between mt-4">
+              <span id="sec-save-status" class="text-xs font-bold text-emerald-600"></span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  onclick="closeSectionManager()"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  id="sec-save-btn"
+                  class="bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold px-5 py-2 rounded-xl text-xs inline-flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <i class="fas fa-check"></i>
+                  <span>Save Visibility Settings</span>
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -389,6 +464,119 @@ export const AdminLandingPagesPage: FC = () => {
               lpSubmitBtn.innerHTML = 'Publish Landing Page';
             }
           });
+
+          // ========================================================
+          // ELEMENTOR-STYLE SECTION MANAGER JAVASCRIPT
+          // ========================================================
+          var currentManagingSlug = '';
+          var currentSectionsData = [];
+
+          window.openSectionManager = async function(slug, pageName) {
+            currentManagingSlug = slug;
+            var modal = document.getElementById('manage-sections-modal');
+            var title = document.getElementById('sec-modal-title');
+            var sub = document.getElementById('sec-modal-subtitle');
+            var loading = document.getElementById('sections-loading');
+            var container = document.getElementById('sections-list-container');
+            var status = document.getElementById('sec-save-status');
+
+            if (status) status.textContent = '';
+            modal.classList.remove('hidden');
+            if (title) title.textContent = pageName + ' — সেকশন ম্যানেজার';
+            if (sub) sub.textContent = 'পৃষ্ঠা: /' + slug + ' | Elementor-এর মতো যেকোনো সেকশন অন বা অফ রাখুন';
+
+            if (loading) loading.style.display = 'block';
+            if (container) container.innerHTML = '';
+
+            try {
+              var res = await fetch('/api/admin/landing-pages/' + slug + '/sections');
+              var data = await res.json();
+              if (loading) loading.style.display = 'none';
+
+              if (data.success && data.sections) {
+                currentSectionsData = data.sections;
+                renderSectionsList(data.sections);
+              } else {
+                if (container) container.innerHTML = '<p class="text-xs text-rose-500 p-4">সেকশন লোড করা সম্ভব হয়নি</p>';
+              }
+            } catch(e) {
+              if (loading) loading.style.display = 'none';
+              if (container) container.innerHTML = '<p class="text-xs text-rose-500 p-4">ত্রুটি: ' + e.message + '</p>';
+            }
+          };
+
+          function renderSectionsList(sections) {
+            var container = document.getElementById('sections-list-container');
+            if (!container) return;
+            container.innerHTML = sections.map(function(sec, idx) {
+              return '<div class="flex items-center justify-between p-3.5 rounded-2xl border ' + (sec.enabled ? 'border-gray-200 bg-white shadow-xs' : 'border-gray-200/60 bg-gray-50/80 opacity-70') + ' transition-all hover:border-indigo-300">' +
+                '<div class="flex items-center gap-3">' +
+                  '<span class="w-8 h-8 rounded-xl ' + (sec.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400') + ' flex items-center justify-center font-bold text-xs shrink-0">' +
+                    (idx + 1) +
+                  '</span>' +
+                  '<div>' +
+                    '<div class="flex items-center gap-2">' +
+                      '<h4 class="font-bold text-sm text-slate-900">' + sec.title + '</h4>' +
+                      '<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md ' + (sec.enabled ? 'bg-emerald-100/70 text-emerald-800' : 'bg-gray-200 text-gray-600') + '">' +
+                        '#' + sec.id +
+                      '</span>' +
+                    '</div>' +
+                    '<p class="text-[11px] ' + (sec.enabled ? 'text-emerald-700 font-semibold' : 'text-gray-400') + ' mt-0.5">' +
+                      (sec.enabled ? '👁️ লাইভ পেজে প্রদর্শিত হচ্ছে (Active)' : '🚫 লাইভ পেজ থেকে হাইড করা আছে (Hidden)') +
+                    '</p>' +
+                  '</div>' +
+                '</div>' +
+                '<label class="relative inline-flex items-center cursor-pointer shrink-0 ml-3">' +
+                  '<input type="checkbox" name="sec_' + sec.id + '" value="' + sec.id + '" class="sr-only peer" ' + (sec.enabled ? 'checked' : '') + ' onchange="this.closest(\'.flex\').classList.toggle(\'opacity-70\', !this.checked)">' +
+                  '<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>' +
+                '</label>' +
+              '</div>';
+            }).join('');
+          }
+
+          window.closeSectionManager = function() {
+            var modal = document.getElementById('manage-sections-modal');
+            if (modal) modal.classList.add('hidden');
+          };
+
+          var manageForm = document.getElementById('manage-sections-form');
+          if (manageForm) {
+            manageForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+              var btn = document.getElementById('sec-save-btn');
+              var status = document.getElementById('sec-save-status');
+              btn.disabled = true;
+              btn.innerHTML = '<span class="ok-spinner"></span> সেভ হচ্ছে...';
+
+              var visibility = {};
+              currentSectionsData.forEach(function(sec) {
+                var cb = document.querySelector('input[name="sec_' + sec.id + '"]');
+                visibility[sec.id] = cb ? cb.checked : false;
+              });
+
+              try {
+                var res = await fetch('/api/admin/landing-pages/' + currentManagingSlug + '/sections', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ visibility: visibility })
+                });
+                var data = await res.json();
+                if (data.success) {
+                  status.textContent = '✓ সেটিংস সফলভাবে সেভ হয়েছে!';
+                  setTimeout(function() {
+                    closeSectionManager();
+                  }, 700);
+                } else {
+                  alert('ত্রুটি: ' + (data.error || 'Failed'));
+                }
+              } catch(err) {
+                alert('এরর: ' + err.message);
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Save Visibility Settings';
+              }
+            });
+          }
         `
       }} />
     </AdminLayout>
