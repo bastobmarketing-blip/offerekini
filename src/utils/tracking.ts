@@ -171,6 +171,7 @@ export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<
     })
 
     const resData: any = await response.json()
+    console.log(`[Meta CAPI] Event: ${params.eventName}, Status: ${response.status}, Received: ${resData.events_received}, Trace: ${resData.fbtrace_id}`, resData.messages || '')
     return response.ok && resData.events_received > 0
   } catch (err) {
     console.error('Meta CAPI Error:', err)
