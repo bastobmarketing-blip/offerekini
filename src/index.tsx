@@ -67,6 +67,7 @@ import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage'
 import { AdminDealsPage } from './pages/admin/AdminDealsPage'
 import { AdminPendingProductsPage } from './pages/admin/AdminPendingProductsPage'
 import { AdminHomepagePage } from './pages/admin/AdminHomepagePage'
+import { getHomepageSetting, saveHomepageSetting } from './data/homepage'
 import { getAdminCredentials, verifyAdminPassword, updateAdminPassword, resetAdminPassword } from './data/admin'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
 import { addProduct, deleteProduct, updateProduct, bindProductToMerchant } from './data/products'
@@ -305,10 +306,57 @@ app.get('/payment/success', async (c) => {
 app.get('/payment/fail', (c) => c.redirect('/checkout?error=payment_failed'))
 app.get('/payment/cancel', (c) => c.redirect('/checkout?error=payment_cancelled'))
 
+// Helper to read and inject Meta Pixel into Testo King static landing page
+async function getTestoKingHtml(): Promise<string | null> {
+  try {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const filePath = path.resolve(process.cwd(), 'public/testo_king/index.html')
+    if (fs.existsSync(filePath)) {
+      let content = fs.readFileSync(filePath, 'utf-8')
+      const pixelScript = renderPixelBaseScript()
+      if (pixelScript) {
+        if (content.includes('<!-- Meta Pixel Code -->')) {
+          content = content.replace(/<!-- Meta Pixel Code -->[\s\S]*?<!-- End Meta Pixel Code -->/, pixelScript)
+        } else if (content.includes('<head>')) {
+          content = content.replace('<head>', `<head>\n${pixelScript}\n`)
+        }
+      }
+      return content
+    }
+  } catch (e) {}
+  return null
+}
+
 // ==========================================================================
 // CUSTOMER ROUTES
 // ==========================================================================
-app.get('/', (c) => c.html(<HomePage />))
+// Dynamic WordPress-Style Homepage Handler
+app.get('/', async (c) => {
+  const setting = getHomepageSetting()
+
+  if (setting.type === 'landing' && setting.target) {
+    if (setting.target === 'testo_king' || setting.target === 'testo-king') {
+      const html = await getTestoKingHtml()
+      if (html) return c.html(html)
+      return c.redirect('/testo_king/')
+    }
+    if (setting.target === 'focus_king' || setting.target === 'focus-king') {
+      return c.html(<FocusKingLandingPage />)
+    }
+    const lp = getLandingPageBySlug(setting.target)
+    if (lp) {
+      return c.html(<DynamicLandingPage config={lp} />)
+    }
+  } else if (setting.type === 'product' && setting.target) {
+    const product = getProductBySlug(setting.target) || products.find((p) => p.id === setting.target || p.slug === setting.target)
+    if (product) {
+      return c.html(<ProductDetailPage product={product} />)
+    }
+  }
+
+  return c.html(<HomePage />)
+})
 
 app.get('/products', (c) => {
   const filter = c.req.query('filter')
@@ -350,23 +398,8 @@ app.get('/focus-king', (c) => c.redirect('/focus_king'))
 app.get('/testo-king', (c) => c.redirect('/testo_king/'))
 app.get('/testo_king', (c) => c.redirect('/testo_king/'))
 app.get('/testo_king/', async (c) => {
-  try {
-    const fs = await import('node:fs')
-    const path = await import('node:path')
-    const filePath = path.resolve(process.cwd(), 'public/testo_king/index.html')
-    if (fs.existsSync(filePath)) {
-      let content = fs.readFileSync(filePath, 'utf-8')
-      const pixelScript = renderPixelBaseScript()
-      if (pixelScript) {
-        if (content.includes('<!-- Meta Pixel Code -->')) {
-          content = content.replace(/<!-- Meta Pixel Code -->[\s\S]*?<!-- End Meta Pixel Code -->/, pixelScript)
-        } else if (content.includes('<head>')) {
-          content = content.replace('<head>', `<head>\n${pixelScript}\n`)
-        }
-      }
-      return c.html(content)
-    }
-  } catch (e) {}
+  const html = await getTestoKingHtml()
+  if (html) return c.html(html)
   return c.redirect('/testo_king/index.html')
 })
 app.get('/testo_king/jar.webp', async (c) => {
@@ -991,6 +1024,21 @@ app.post('/api/admin/settings/courier', async (c) => {
     const body = await c.req.json()
     saveCourierSettings(body)
     return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Homepage Settings APIs
+app.get('/api/admin/homepage-settings', (c) => {
+  return c.json({ success: true, setting: getHomepageSetting() })
+})
+
+app.post('/api/admin/homepage-settings', async (c) => {
+  try {
+    const body = await c.req.json()
+    const updated = saveHomepageSetting(body)
+    return c.json({ success: true, setting: updated })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }
