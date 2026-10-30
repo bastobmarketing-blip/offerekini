@@ -59,9 +59,18 @@ import { AdminEditProductPage } from './pages/admin/AdminEditProductPage'
 import { AdminLandingPagesPage } from './pages/admin/AdminLandingPagesPage'
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage'
+import { AdminReportsPage } from './pages/admin/AdminReportsPage'
+import { AdminCustomersPage } from './pages/admin/AdminCustomersPage'
+import { AdminSettlementsPage } from './pages/admin/AdminSettlementsPage'
+import { AdminBannersPage } from './pages/admin/AdminBannersPage'
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage'
+import { AdminDealsPage } from './pages/admin/AdminDealsPage'
+import { AdminPendingProductsPage } from './pages/admin/AdminPendingProductsPage'
+import { AdminHomepagePage } from './pages/admin/AdminHomepagePage'
+import { getAdminCredentials, verifyAdminPassword, updateAdminPassword, resetAdminPassword } from './data/admin'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
 import { addProduct, deleteProduct, updateProduct } from './data/products'
-import { updateOrderStatus, updateOrderCourier } from './data/orders'
+import { updateOrderStatus, updateOrderCourier, updateOrderMerchant } from './data/orders'
 import { getAllLandingPages, getLandingPageBySlug, getLandingPageForProduct, getLandingPageUrl, createLandingPage, deleteLandingPage } from './data/landingPages'
 import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
 import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings, renderPixelBaseScript } from './utils/tracking'
@@ -623,15 +632,46 @@ app.get('/merchant/settings', (c) => {
 })
 
 // ==========================================================================
+// ADMIN AUTH MIDDLEWARE & HELPERS
+// ==========================================================================
+function isAdminAuthenticated(c: any): boolean {
+  const cookieVal = getCookie(c, 'admin_session')
+  return cookieVal === 'authenticated'
+}
+
+// ==========================================================================
 // ADMIN ROUTES & CONTROLS
 // ==========================================================================
 app.get('/admin', (c) => c.redirect('/admin/dashboard'))
 app.get('/admin/', (c) => c.redirect('/admin/dashboard'))
-app.get('/admin/login', (c) => c.html(<AdminLoginPage />))
+
+app.get('/admin/login', (c) => {
+  if (isAdminAuthenticated(c)) return c.redirect('/admin/dashboard')
+  return c.html(<AdminLoginPage />)
+})
+
+app.get('/admin/logout', (c) => {
+  deleteCookie(c, 'admin_session', { path: '/' })
+  return c.redirect('/admin/login')
+})
+
+// Protected Admin Routes Middleware
+app.use('/admin/*', async (c, next) => {
+  const path = c.req.path
+  if (path === '/admin/login' || path.startsWith('/admin/merchants/') && path.endsWith('/impersonate')) {
+    return await next()
+  }
+  if (!isAdminAuthenticated(c)) {
+    return c.redirect('/admin/login')
+  }
+  return await next()
+})
+
 app.get('/admin/dashboard', (c) => c.html(<AdminDashboardPage />))
 app.get('/admin/merchants', (c) => c.html(<AdminMerchantsPage />))
 app.get('/admin/products', (c) => c.html(<AdminProductsPage />))
 app.get('/admin/products/new', (c) => c.html(<AdminAddProductPage />))
+app.get('/admin/products/pending', (c) => c.html(<AdminPendingProductsPage />))
 app.get('/admin/products/:id/edit', (c) => {
   const id = c.req.param('id')
   const product = products.find((p) => p.id === id)
@@ -640,7 +680,76 @@ app.get('/admin/products/:id/edit', (c) => {
 })
 app.get('/admin/landing-pages', (c) => c.html(<AdminLandingPagesPage />))
 app.get('/admin/orders', (c) => c.html(<AdminOrdersPage />))
+app.get('/admin/categories', (c) => c.html(<AdminCategoriesPage />))
+app.get('/admin/deals', (c) => c.html(<AdminDealsPage />))
+app.get('/admin/homepage', (c) => c.html(<AdminHomepagePage />))
+app.get('/admin/banners', (c) => c.html(<AdminBannersPage />))
+app.get('/admin/settlements', (c) => c.html(<AdminSettlementsPage />))
+app.get('/admin/customers', (c) => c.html(<AdminCustomersPage />))
+app.get('/admin/reports', (c) => c.html(<AdminReportsPage />))
 app.get('/admin/settings', (c) => c.html(<AdminSettingsPage />))
+
+// Admin Auth APIs
+app.post('/api/admin/login', async (c) => {
+  try {
+    const { email, password } = await c.req.json()
+    const creds = getAdminCredentials()
+    if (email.trim().toLowerCase() === creds.email.toLowerCase() && password === creds.password) {
+      setCookie(c, 'admin_session', 'authenticated', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'Lax',
+        maxAge: 2592000 // 30 days
+      })
+      return c.json({ success: true, redirect: '/admin/dashboard' })
+    }
+    return c.json({ success: false, error: 'ভুল ইমেইল বা পাসওয়ার্ড!' }, 401)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 400)
+  }
+})
+
+app.post('/api/admin/reset-password', async (c) => {
+  try {
+    const { recoveryKey, newPassword } = await c.req.json()
+    const res = resetAdminPassword(recoveryKey, newPassword)
+    if (!res.success) {
+      return c.json({ success: false, error: res.error }, 400)
+    }
+    return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.post('/api/admin/change-password', async (c) => {
+  try {
+    const { oldPassword, newPassword, email } = await c.req.json()
+    const creds = getAdminCredentials()
+    if (oldPassword !== creds.password) {
+      return c.json({ success: false, error: 'বর্তমান পাসওয়ার্ড সঠিক নয়!' }, 400)
+    }
+    updateAdminPassword(newPassword, email)
+    return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Order Merchant Reassign API
+app.put('/api/admin/orders/:id/merchant', async (c) => {
+  try {
+    const orderId = c.req.param('id')
+    const { merchantId } = await c.req.json()
+    const updated = updateOrderMerchant(orderId, merchantId)
+    if (!updated) {
+      return c.json({ success: false, error: 'Order not found' }, 404)
+    }
+    return c.json({ success: true, order: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
 
 // Admin Product APIs
 app.get('/api/admin/products', (c) => c.json({ success: true, products }))

@@ -4,7 +4,7 @@ import { AdminSidebar } from '../components/admin/AdminSidebar'
 import { AdminTopbar } from '../components/admin/AdminTopbar'
 
 export const AdminLayout: FC<{ title: string; active: string; children: any }> = ({ title, active, children }) => (
-  <Document title={`Admin · ${title}`}>
+  <Document title={`Admin · ${title}`} noPixel={true}>
     <div class="flex min-h-screen bg-ok-offwhite" style="background:#f6f8f6;">
       <AdminSidebar active={active} />
       <div class="flex-1 min-w-0">

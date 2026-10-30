@@ -11,7 +11,7 @@ interface MerchantLayoutProps {
 }
 
 export const MerchantLayout: FC<MerchantLayoutProps> = ({ title, active, merchantName, children }) => (
-  <Document title={`Merchant · ${title}`}>
+  <Document title={`Merchant · ${title}`} noPixel={true}>
     <div class="flex min-h-screen bg-ok-offwhite" style="background:#f6f8f6;">
       <MerchantSidebar active={active} />
       <div class="flex-1 min-w-0">

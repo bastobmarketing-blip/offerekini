@@ -264,6 +264,15 @@ export function updateOrderStatus(orderId: string, status: OrderStatus): Order |
   return order
 }
 
+export function updateOrderMerchant(orderId: string, merchantId: string): Order | null {
+  const order = orders.find((o) => o.id.toLowerCase() === orderId.toLowerCase())
+  if (!order) return null
+
+  order.merchantId = merchantId
+  saveCustomOrders()
+  return order
+}
+
 export function updateOrderCourier(orderId: string, info: { consignmentId?: string | number; trackingCode?: string; courierProvider?: string }): Order | null {
   const order = orders.find((o) => o.id.toLowerCase() === orderId.toLowerCase())
   if (!order) return null

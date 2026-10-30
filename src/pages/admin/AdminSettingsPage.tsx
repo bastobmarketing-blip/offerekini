@@ -72,7 +72,76 @@ export const AdminSettingsPage: FC = () => {
           </form>
         </div>
 
-        {/* STEADFAST COURIER SETTINGS */}
+        {/* ADMIN SECURITY & PASSWORD */}
+        <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div class="flex items-center gap-3 border-b pb-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base text-slate-900">অ্যাডমিন লগইন ও পাসওয়ার্ড সেটিংস</h2>
+              <p class="text-xs text-slate-500">আপনার অ্যাডমিন প্যানেলের ইমেইল ও পাসওয়ার্ড পরিবর্তন করুন</p>
+            </div>
+          </div>
+
+          <form id="admin-password-form" class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1">অ্যাডমিন ইমেইল *</label>
+                <input
+                  type="email"
+                  name="adminEmail"
+                  value="admin@offerkini.com"
+                  required
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:border-ok-green-700 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1">বর্তমান পাসওয়ার্ড *</label>
+                <input
+                  type="password"
+                  name="oldPassword"
+                  required
+                  placeholder="বর্তমান পাসওয়ার্ড দিন"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1">নতুন পাসওয়ার্ড *</label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  required
+                  minlength={6}
+                  placeholder="কমপক্ষে ৬ ডিজিটের নতুন পাসওয়ার্ড"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-700 block mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  required
+                  minlength={6}
+                  placeholder="আবার নতুন পাসওয়ার্ড দিন"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-mono focus:border-ok-green-700 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="save-password-btn"
+              class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all"
+            >
+              <i class="fas fa-key"></i> পাসওয়ার্ড আপডেট করুন
+            </button>
+          </form>
+        </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
           <div class="flex items-center gap-3 border-b pb-3 mb-4">
             <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
@@ -184,6 +253,45 @@ export const AdminSettingsPage: FC = () => {
             } finally {
               btn.disabled = false;
               btn.innerHTML = '<i class="fas fa-check"></i> Save Courier Settings';
+            }
+          });
+
+          document.getElementById('admin-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = document.getElementById('save-password-btn');
+            var oldPass = this.oldPassword.value;
+            var newPass = this.newPassword.value;
+            var confirmPass = this.confirmPassword.value;
+            var email = this.adminEmail.value.trim();
+
+            if (newPass !== confirmPass) {
+              alert('নতুন পাসওয়ার্ড দুটি মিলছে না!');
+              return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = 'আপডেট হচ্ছে...';
+
+            try {
+              var res = await fetch('/api/admin/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass, email: email })
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert('অ্যাডমিন পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!');
+                this.oldPassword.value = '';
+                this.newPassword.value = '';
+                this.confirmPassword.value = '';
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed to change password'));
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-key"></i> পাসওয়ার্ড আপডেট করুন';
             }
           });
         `

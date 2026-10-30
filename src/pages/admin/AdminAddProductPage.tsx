@@ -10,7 +10,7 @@ export const AdminAddProductPage: FC = () => (
       <div class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-xl font-bold text-ok-charcoal">নতুন প্রোডাক্ট যোগ করুন</h1>
-          <p class="text-xs text-ok-gray-500">প্রোডাক্টের তথ্য ও প্রাইসিং পূরণ করে প্রকাশ করুন</p>
+          <p class="text-xs text-ok-gray-500">প্রোডাক্টের তথ্য, ছবি ও প্রাইসিং পূরণ করে প্রকাশ করুন</p>
         </div>
         <a href="/admin/products" class="text-xs font-semibold text-ok-gray-500 hover:text-ok-charcoal flex items-center gap-1">
           <i class="fas fa-arrow-left"></i> সকল প্রোডাক্টে ফিরুন
@@ -23,26 +23,26 @@ export const AdminAddProductPage: FC = () => (
             <i class="fas fa-info-circle text-ok-green-700"></i> মূল তথ্য
           </h3>
           <div class="grid sm:grid-cols-2 gap-4">
-            <FormField label="Product Name (বাংলা)" name="name" placeholder="যেমন: টেস্টো কিং — ৫০০ গ্রাম জার" required className="sm:col-span-2" />
+            <FormField label="Product Name (বাংলা) *" name="name" placeholder="যেমন: টেস্টো কিং — ৫০০ গ্রাম জার" required className="sm:col-span-2" />
             <FormField label="Product Name (English / Optional)" name="nameEn" placeholder="e.g. Testo King 500g" className="sm:col-span-2" />
             <FormField
-              label="Category"
+              label="Category *"
               name="category"
               type="select"
               required
               options={categories.map((c) => ({ value: c.slug, label: `${c.name} (${c.nameEn})` }))}
             />
             <FormField
-              label="নির্ধারিত মার্চেন্ট (Assigned Merchant)"
+              label="নির্ধারিত মার্চেন্ট (Assigned Merchant) *"
               name="merchantId"
               type="select"
               required
               helpText="এই প্রোডাক্টের অর্ডারগুলো সরাসরি এই মার্চেন্টের প্যানেলে যাবে"
               options={merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))}
             />
-            <FormField label="SKU" name="sku" placeholder="OK-PR-001" />
-            <FormField label="Short Description" name="shortDescription" placeholder="এক লাইনে মূল ফিচার বা সুবিধা" required className="sm:col-span-2" />
-            <FormField label="Full Description" name="description" type="textarea" rows={4} placeholder="পণ্যের বিস্তারিত বিবরণ ও উপকারিতা" required className="sm:col-span-2" />
+            <FormField label="SKU (ঐচ্ছিক)" name="sku" placeholder="OK-PR-001" />
+            <FormField label="Short Description (ঐচ্ছিক)" name="shortDescription" placeholder="এক লাইনে মূল ফিচার বা সুবিধা" className="sm:col-span-2" />
+            <FormField label="Full Description (ঐচ্ছিক)" name="description" type="textarea" rows={3} placeholder="পণ্যের বিস্তারিত বিবরণ ও উপকারিতা" className="sm:col-span-2" />
           </div>
         </div>
 
@@ -51,20 +51,33 @@ export const AdminAddProductPage: FC = () => (
             <i class="fas fa-image text-ok-green-700"></i> প্রোডাক্ট ইমেজ ও মিডিয়া
           </h3>
           <div class="space-y-4">
-            <FormField
-              label="Primary Image URL"
-              name="image"
-              placeholder="/static/images/products/... বা https://..."
-              helpText="আপনি লোকাল পাথ (যেমন: /testo_king/jar.webp) অথবা কোনো সরাসরি ইমেজ লিঙ্ক দিতে পারেন"
-              required
-            />
-            <div id="image-preview-box" class="hidden flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-              <img id="image-preview" src="" class="w-16 h-16 object-cover rounded-lg border bg-white" />
+            <div>
+              <label class="block text-xs font-bold text-ok-charcoal mb-1">প্রোডাক্ট ইমেজ (Image URL বা ফাইল আপলোড)</label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  name="image"
+                  id="product-image-input"
+                  placeholder="/static/images/products/... বা https://..."
+                  class="flex-1 text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+                <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-2.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shrink-0">
+                  <i class="fas fa-upload"></i>
+                  <span>ছবি আপলোড</span>
+                  <input type="file" id="product-file-upload" accept="image/*" class="hidden" />
+                </label>
+              </div>
+              <p class="text-[11px] text-gray-400 mt-1">ফাঁকা রাখলে ডিফল্ট লোগো ইমেজ সেট হবে</p>
+            </div>
+
+            <div id="image-preview-box" class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <img id="image-preview" src="/static/images/brand/offerkini-logo.png" class="w-16 h-16 object-contain rounded-lg border bg-white p-1" />
               <div class="text-xs text-ok-gray-500">
-                <p class="font-bold text-ok-charcoal">ইমেজ প্রিভিউ</p>
-                <p>ছবিটি সঠিকভাবে লোড হয়েছে</p>
+                <p class="font-bold text-ok-charcoal" id="preview-text">বর্তমান ইমেজ প্রিভিউ</p>
+                <p class="text-[11px] text-gray-400">এই ছবিটি প্রোডাক্ট কার্ডে দেখানো হবে</p>
               </div>
             </div>
+
             <FormField label="Product Video URL (ঐচ্ছিক YouTube লিঙ্ক)" name="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
           </div>
         </div>
@@ -74,12 +87,12 @@ export const AdminAddProductPage: FC = () => (
             <i class="fas fa-tags text-ok-green-700"></i> প্রাইসিং ও ইনভেন্টরি
           </h3>
           <div class="grid sm:grid-cols-3 gap-4">
-            <FormField label="Reference Price (মার্কেট মূল্য)" name="referencePrice" type="number" placeholder="1290" required helpText="পূর্বের বা বাজারের রেগুলার দাম" />
-            <FormField label="OfferKini Price (অফারেকিনি দাম)" name="offerKiniPrice" type="number" placeholder="990" required helpText="যে দামে গ্রাহক কিনবেন" />
-            <FormField label="Stock Quantity" name="stock" type="number" placeholder="100" required />
+            <FormField label="OfferKini Price (বিক্রয় মূল্য) *" name="offerKiniPrice" type="number" placeholder="990" required helpText="যে দামে গ্রাহক কিনবেন" />
+            <FormField label="Reference Price (মার্কেট মূল্য)" name="referencePrice" type="number" placeholder="1290" helpText="বাজারের পূর্বের রেগুলার দাম" />
+            <FormField label="Stock Quantity" name="stock" type="number" placeholder="50" helpText="ডিফল্ট: ৫০" />
           </div>
           <div class="grid sm:grid-cols-2 gap-4 mt-4">
-            <FormField label="Delivery Charge (ঢাকা)" name="deliveryCharge" type="number" placeholder="60" required />
+            <FormField label="ডেলিভারি চার্জ (ঢাকা)" name="deliveryCharge" type="number" placeholder="60" helpText="ডিফল্ট: ৬০ টাকা" />
             <FormField label="Weight (গ্রাম / ঐচ্ছিক)" name="weightGrams" type="number" placeholder="500" />
           </div>
 
@@ -117,9 +130,9 @@ export const AdminAddProductPage: FC = () => (
           var okInput = document.querySelector('[name=offerKiniPrice]');
           var previewBox = document.getElementById('price-preview-calc');
           var savingsDisplay = document.getElementById('savings-display');
-          var imageInput = document.querySelector('[name=image]');
-          var imagePreviewBox = document.getElementById('image-preview-box');
+          var imageInput = document.getElementById('product-image-input');
           var imagePreview = document.getElementById('image-preview');
+          var fileUpload = document.getElementById('product-file-upload');
 
           function updateSavings() {
             var ref = parseFloat(refInput.value) || 0;
@@ -134,17 +147,30 @@ export const AdminAddProductPage: FC = () => (
             }
           }
 
-          refInput.addEventListener('input', updateSavings);
-          okInput.addEventListener('input', updateSavings);
+          if (refInput) refInput.addEventListener('input', updateSavings);
+          if (okInput) okInput.addEventListener('input', updateSavings);
 
           imageInput.addEventListener('input', function() {
             var url = imageInput.value.trim();
             if (url) {
               imagePreview.src = url;
-              imagePreviewBox.classList.remove('hidden');
             } else {
-              imagePreviewBox.classList.add('hidden');
+              imagePreview.src = '/static/images/brand/offerkini-logo.png';
             }
+          });
+
+          // File Upload Handler (Base64)
+          fileUpload.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+              var base64 = evt.target.result;
+              imagePreview.src = base64;
+              imageInput.value = base64;
+              document.getElementById('preview-text').textContent = 'আপলোড করা ইমেজ প্রিভিউ';
+            };
+            reader.readAsDataURL(file);
           });
 
           var form = document.getElementById('admin-add-product-form');
@@ -155,21 +181,35 @@ export const AdminAddProductPage: FC = () => (
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="ok-spinner"></span> পাবলিশ হচ্ছে...';
 
+            var name = form.querySelector('[name=name]').value.trim();
+            var okPrice = parseFloat(form.querySelector('[name=offerKiniPrice]').value) || 0;
+            var refPrice = parseFloat(form.querySelector('[name=referencePrice]').value) || okPrice;
+            var category = form.querySelector('[name=category]').value;
+            var merchantId = form.querySelector('[name=merchantId]') ? form.querySelector('[name=merchantId]').value : 'mer-1';
+            var image = form.querySelector('[name=image]').value.trim() || '/static/images/brand/offerkini-logo.png';
+            var shortDesc = form.querySelector('[name=shortDescription]').value.trim() || name;
+            var fullDesc = form.querySelector('[name=description]').value.trim() || name;
+            var sku = form.querySelector('[name=sku]').value.trim() || ('OK-PR-' + Math.floor(1000 + Math.random() * 9000));
+            var stock = parseInt(form.querySelector('[name=stock]').value) || 50;
+            var delivery = parseFloat(form.querySelector('[name=deliveryCharge]').value) || 60;
+            var weight = parseFloat(form.querySelector('[name=weightGrams]').value) || 500;
+            var videoUrl = form.querySelector('[name=videoUrl]') ? form.querySelector('[name=videoUrl]').value.trim() : '';
+
             var payload = {
-              name: form.querySelector('[name=name]').value,
-              nameEn: form.querySelector('[name=nameEn]').value,
-              category: form.querySelector('[name=category]').value,
-              merchantId: form.querySelector('[name=merchantId]') ? form.querySelector('[name=merchantId]').value : 'mer-1',
-              sku: form.querySelector('[name=sku]').value,
-              shortDescription: form.querySelector('[name=shortDescription]').value,
-              description: form.querySelector('[name=description]').value,
-              image: form.querySelector('[name=image]').value,
-              videoUrl: form.querySelector('[name=videoUrl]').value,
-              referencePrice: parseFloat(form.querySelector('[name=referencePrice]').value) || 0,
-              offerKiniPrice: parseFloat(form.querySelector('[name=offerKiniPrice]').value) || 0,
-              stock: parseInt(form.querySelector('[name=stock]').value) || 50,
-              deliveryCharge: parseFloat(form.querySelector('[name=deliveryCharge]').value) || 60,
-              weightGrams: parseFloat(form.querySelector('[name=weightGrams]').value) || 500
+              name: name,
+              nameEn: form.querySelector('[name=nameEn]') ? form.querySelector('[name=nameEn]').value.trim() : name,
+              category: category,
+              merchantId: merchantId,
+              sku: sku,
+              shortDescription: shortDesc,
+              description: fullDesc,
+              image: image,
+              videoUrl: videoUrl,
+              referencePrice: refPrice,
+              offerKiniPrice: okPrice,
+              stock: stock,
+              deliveryCharge: delivery,
+              weightGrams: weight
             };
 
             try {

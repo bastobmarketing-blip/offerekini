@@ -7,12 +7,13 @@ interface DocumentProps {
   description?: string
   children: any
   bodyClass?: string
+  noPixel?: boolean
 }
 
 // Shared HTML document shell. Sets up Tailwind (CDN/Play), brand color
 // tokens, Google Fonts, FontAwesome and the global stylesheet + scripts.
 // Every layout (Customer / Merchant / Admin) renders through this.
-export const Document: FC<DocumentProps> = ({ title, description, children, bodyClass }) => {
+export const Document: FC<DocumentProps> = ({ title, description, children, bodyClass, noPixel }) => {
   return (
     <html lang="bn">
       <head>
@@ -22,7 +23,7 @@ export const Document: FC<DocumentProps> = ({ title, description, children, body
         {description && <meta name="description" content={description} />}
         <link rel="icon" type="image/png" href="/static/images/brand/offerkini-logo.png" />
 
-        {raw(renderPixelBaseScript())}
+        {!noPixel && raw(renderPixelBaseScript())}
 
         <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
