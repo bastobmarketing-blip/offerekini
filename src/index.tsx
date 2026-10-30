@@ -166,6 +166,11 @@ app.post('/api/orders', async (c) => {
       total: Number(total) || (Number(price) + Number(delivery))
     })
 
+    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
+    const userAgent = c.req.header('user-agent')
+    const fbp = getCookie(c, '_fbp') || body.fbp
+    const fbc = getCookie(c, '_fbc') || body.fbc
+
     // Fire Server-Side Meta CAPI Purchase event (non-blocking)
     sendMetaServerEvent({
       eventName: 'Purchase',
@@ -175,8 +180,10 @@ app.post('/api/orders', async (c) => {
       currency: 'BDT',
       phone: order.customerPhone,
       name: order.customerName,
-      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
-      userAgent: c.req.header('user-agent'),
+      clientIp,
+      userAgent,
+      fbp,
+      fbc,
       sourceUrl: c.req.url
     }).catch((e) => console.error('CAPI trigger error:', e))
 
@@ -213,6 +220,11 @@ app.post('/api/testo_king/order', async (c) => {
       total: Number(total) || (Number(price) + Number(delivery))
     })
 
+    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
+    const userAgent = c.req.header('user-agent')
+    const fbp = getCookie(c, '_fbp') || body.fbp
+    const fbc = getCookie(c, '_fbc') || body.fbc
+
     // Fire Server-Side Meta CAPI Purchase event (non-blocking)
     sendMetaServerEvent({
       eventName: 'Purchase',
@@ -222,8 +234,10 @@ app.post('/api/testo_king/order', async (c) => {
       currency: 'BDT',
       phone: order.customerPhone,
       name: order.customerName,
-      clientIp: c.req.header('x-forwarded-for') || c.req.header('cf-connecting-ip'),
-      userAgent: c.req.header('user-agent'),
+      clientIp,
+      userAgent,
+      fbp,
+      fbc,
       sourceUrl: c.req.url
     }).catch((e) => console.error('CAPI trigger error:', e))
 

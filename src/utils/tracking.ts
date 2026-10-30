@@ -14,8 +14,8 @@ const ENV_FILE = path.resolve(process.cwd(), '.env')
 
 const DEFAULT_SETTINGS: TrackingSettings = {
   pixelId: process.env.META_PIXEL_ID || '1416528586776042',
-  accessToken: process.env.META_ACCESS_TOKEN || '',
-  testEventCode: process.env.META_TEST_EVENT_CODE || '',
+  accessToken: process.env.META_ACCESS_TOKEN || 'EAAEW7ngIMZB4BS7NAdnMZCoZBl0mlzINZA8Nd453lBZBsKxUBfRfQbaSbxhgQPcizooolKAys61yyzHfdhwl5ueJkpjyvHszVzHdbumUPbIocFFwS7dZAkN07VyXrDJDV4V0OMBgBZCZBCK69HPJfRApqgjYNiHKrYb77DpPZCr9pjwAvImGx5mLLMH2B3HwsAX60NQZDZD',
+  testEventCode: process.env.META_TEST_EVENT_CODE || 'TEST65269',
   enabled: true
 }
 
@@ -54,7 +54,7 @@ export function getTrackingSettings(): TrackingSettings {
         return {
           pixelId: parsed.pixelId || DEFAULT_SETTINGS.pixelId,
           accessToken: parsed.accessToken || DEFAULT_SETTINGS.accessToken,
-          testEventCode: parsed.testEventCode ?? DEFAULT_SETTINGS.testEventCode,
+          testEventCode: (parsed.testEventCode !== undefined && parsed.testEventCode !== '') ? parsed.testEventCode : DEFAULT_SETTINGS.testEventCode,
           enabled: parsed.enabled ?? true
         }
       }
@@ -117,6 +117,8 @@ export interface MetaCapiEventParams {
   clientIp?: string
   userAgent?: string
   sourceUrl?: string
+  fbp?: string
+  fbc?: string
 }
 
 export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<boolean> {
@@ -144,7 +146,9 @@ export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<
             ph: formattedPhone ? [hashSha256(formattedPhone)] : [],
             fn: params.name ? [hashSha256(params.name.split(' ')[0])] : [],
             client_ip_address: params.clientIp || undefined,
-            client_user_agent: params.userAgent || undefined
+            client_user_agent: params.userAgent || undefined,
+            fbp: params.fbp || undefined,
+            fbc: params.fbc || undefined
           },
           custom_data: {
             currency: params.currency || 'BDT',
