@@ -136,6 +136,7 @@ export interface CreateOrderInput {
   area?: string
   productName: string
   productId?: string
+  merchantId?: string
   productImage?: string
   package?: string
   quantity?: number
@@ -164,6 +165,25 @@ export function createOrder(data: CreateOrderInput): Order {
     if (!district) district = 'ঢাকা'
   }
 
+  // Auto-resolve merchant and product details
+  let matchedProduct = data.productId ? products.find((p) => p.id === data.productId) : undefined
+  if (!matchedProduct && data.productName) {
+    const searchLower = data.productName.toLowerCase()
+    matchedProduct = products.find(
+      (p) =>
+        p.name.toLowerCase() === searchLower ||
+        p.nameEn.toLowerCase() === searchLower ||
+        searchLower.includes(p.name.toLowerCase()) ||
+        searchLower.includes(p.slug.toLowerCase()) ||
+        p.slug.includes(searchLower)
+    )
+  }
+
+  const resolvedMerchantId = data.merchantId || matchedProduct?.merchantId || 'mer-1'
+  const resolvedProductId = data.productId || matchedProduct?.id || 'p-testo-king'
+  const resolvedProductName = data.productName || matchedProduct?.name || 'অফারকিনি প্রোডাক্ট'
+  const resolvedProductImage = data.productImage || matchedProduct?.image || '/testo_king/jar.webp'
+
   const newOrder: Order = {
     id: orderId,
     customerName: data.customerName,
@@ -171,12 +191,12 @@ export function createOrder(data: CreateOrderInput): Order {
     address: data.address,
     district,
     area: data.area || district,
-    merchantId: 'mer-1',
+    merchantId: resolvedMerchantId,
     items: [
       {
-        productId: data.productId || 'p-testo-king',
-        productName: data.productName,
-        productImage: data.productImage || '/testo_king/jar.webp',
+        productId: resolvedProductId,
+        productName: resolvedProductName,
+        productImage: resolvedProductImage,
         quantity: data.quantity || (data.package === '2x' ? 2 : 1),
         unitPrice: data.price
       }

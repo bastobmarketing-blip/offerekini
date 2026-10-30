@@ -24,7 +24,7 @@ export const MerchantLoginPage: FC = () => (
             লগইন করুন
           </button>
           <p class="text-xs text-ok-gray-400 text-center">
-            <i class="fas fa-circle-info mr-1"></i> ডেমো: যেকোনো তথ্য দিয়ে লগইন করা যাবে।
+            <i class="fas fa-circle-info mr-1"></i> অ্যাডমিন থেকে প্রাপ্ত মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন।
           </p>
         </form>
 

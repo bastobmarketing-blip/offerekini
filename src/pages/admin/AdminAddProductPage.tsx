@@ -2,6 +2,7 @@ import type { FC } from 'hono/jsx'
 import { AdminLayout } from '../../layouts/AdminLayout'
 import { FormField } from '../../components/ui/FormField'
 import { categories } from '../../data/categories'
+import { merchants } from '../../data/merchants'
 
 export const AdminAddProductPage: FC = () => (
   <AdminLayout title="Add Product" active="products">
@@ -30,6 +31,14 @@ export const AdminAddProductPage: FC = () => (
               type="select"
               required
               options={categories.map((c) => ({ value: c.slug, label: `${c.name} (${c.nameEn})` }))}
+            />
+            <FormField
+              label="নির্ধারিত মার্চেন্ট (Assigned Merchant)"
+              name="merchantId"
+              type="select"
+              required
+              helpText="এই প্রোডাক্টের অর্ডারগুলো সরাসরি এই মার্চেন্টের প্যানেলে যাবে"
+              options={merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))}
             />
             <FormField label="SKU" name="sku" placeholder="OK-PR-001" />
             <FormField label="Short Description" name="shortDescription" placeholder="এক লাইনে মূল ফিচার বা সুবিধা" required className="sm:col-span-2" />
@@ -150,6 +159,7 @@ export const AdminAddProductPage: FC = () => (
               name: form.querySelector('[name=name]').value,
               nameEn: form.querySelector('[name=nameEn]').value,
               category: form.querySelector('[name=category]').value,
+              merchantId: form.querySelector('[name=merchantId]') ? form.querySelector('[name=merchantId]').value : 'mer-1',
               sku: form.querySelector('[name=sku]').value,
               shortDescription: form.querySelector('[name=shortDescription]').value,
               description: form.querySelector('[name=description]').value,

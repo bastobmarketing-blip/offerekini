@@ -5,7 +5,7 @@ import { products, getProductBySlug, getProductsByCategory, searchProducts } fro
 import { getCategoryBySlug } from './data/categories'
 import { getOrderById, getOrdersByMerchant, orders, createOrder } from './data/orders'
 import { getCustomerByPhone, customers } from './data/customers'
-import { merchants, getMerchantById } from './data/merchants'
+import { merchants, getMerchantById, addMerchant, updateMerchant, deleteMerchant } from './data/merchants'
 import { getSettlementsByMerchant } from './data/settlements'
 
 // ---- EPS Payment Gateway ----
@@ -141,19 +141,24 @@ app.post('/api/eps/initiate', async (c) => {
 app.post('/api/orders', async (c) => {
   try {
     const body = await c.req.json()
-    const { name, phone, address, package: pkgId, product, price, delivery, total } = body
+    const { name, phone, address, package: pkgId, product, price, delivery, total, productId } = body
 
     if (!name || !phone || !address) {
       return c.json({ success: false, error: 'Name, phone, and address are required' }, 400)
     }
 
+    const matchedProduct = (productId ? products.find((p) => p.id === productId) : undefined) ||
+      (product ? products.find((p) => p.name.toLowerCase() === product.toLowerCase() || p.nameEn.toLowerCase() === product.toLowerCase() || product.toLowerCase().includes(p.name.toLowerCase()) || product.toLowerCase().includes(p.slug.toLowerCase())) : undefined) ||
+      products.find((p) => p.id === 'p-testo-king')
+
     const order = createOrder({
       customerName: name,
       customerPhone: phone,
       address,
-      productName: product || 'Testo King',
-      productId: 'p-testo-king',
-      productImage: '/testo_king/jar.webp',
+      productName: product || matchedProduct?.name || 'Testo King',
+      productId: matchedProduct?.id || 'p-testo-king',
+      productImage: matchedProduct?.image || '/testo_king/jar.webp',
+      merchantId: matchedProduct?.merchantId || 'mer-1',
       package: pkgId,
       quantity: pkgId === '2x' ? 2 : 1,
       price: Number(price) || (pkgId === '2x' ? 1490 : 990),
@@ -191,13 +196,16 @@ app.post('/api/testo_king/order', async (c) => {
       return c.json({ success: false, error: 'Name, phone, and address are required' }, 400)
     }
 
+    const matchedProduct = products.find((p) => p.id === 'p-testo-king')
+
     const order = createOrder({
       customerName: name,
       customerPhone: phone,
       address,
-      productName: product || 'Testo King',
+      productName: product || matchedProduct?.name || 'Testo King',
       productId: 'p-testo-king',
-      productImage: '/testo_king/jar.webp',
+      productImage: matchedProduct?.image || '/testo_king/jar.webp',
+      merchantId: matchedProduct?.merchantId || 'mer-1',
       package: pkgId,
       quantity: pkgId === '2x' ? 2 : 1,
       price: Number(price) || (pkgId === '2x' ? 1490 : 990),
@@ -419,43 +427,53 @@ app.get('/:slug', async (c, next) => {
 // ==========================================================================
 // MERCHANT SESSION & ISOLATION HELPERS
 // ==========================================================================
-function getMerchantIdFromContext(c: any): string {
+function getMerchantIdFromContext(c: any): string | null {
   const cookieVal = getCookie(c, 'merchant_session')
   if (cookieVal && getMerchantById(cookieVal)) {
     return cookieVal
   }
-  return 'mer-1'
+  return null
 }
 
 // ==========================================================================
 // MERCHANT ROUTES & APIS
 // ==========================================================================
-app.get('/merchant/login', (c) => c.html(<MerchantLoginPage />))
+app.get('/merchant/login', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (merchantId) return c.redirect('/merchant/orders')
+  return c.html(<MerchantLoginPage />)
+})
 
 app.post('/api/merchant/login', async (c) => {
   try {
     const { identifier, password } = await c.req.json()
     const cleanId = (identifier || '').trim().toLowerCase()
+    const cleanPhone = cleanId.replace(/[^0-9]/g, '')
 
-    // Find merchant matching phone or email
+    // Find merchant matching phone, email, or id
     const match = merchants.find(
       (m) =>
         m.id.toLowerCase() === cleanId ||
-        m.email.toLowerCase() === cleanId ||
-        m.phone.replace(/[^0-9]/g, '') === cleanId.replace(/[^0-9]/g, '')
+        (m.email && m.email.toLowerCase() === cleanId) ||
+        (cleanPhone.length >= 6 && m.phone.replace(/[^0-9]/g, '').includes(cleanPhone))
     )
 
-    // Demo/prototype allows login for any registered merchant or demo credentials
-    const targetMerchant = match || merchants[0]
+    if (!match) {
+      return c.json({ success: false, error: 'মার্চেন্ট অ্যাকাউন্ট পাওয়া যায়নি। সঠিক ফোন নম্বর বা আইডি দিন।' }, 404)
+    }
 
-    setCookie(c, 'merchant_session', targetMerchant.id, {
+    if (match.password && match.password !== password) {
+      return c.json({ success: false, error: 'ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।' }, 401)
+    }
+
+    setCookie(c, 'merchant_session', match.id, {
       path: '/',
       httpOnly: true,
       sameSite: 'Lax',
       maxAge: 2592000 // 30 days
     })
 
-    return c.json({ success: true, redirect: '/merchant/dashboard', merchant: targetMerchant })
+    return c.json({ success: true, redirect: '/merchant/orders', merchant: match })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 400)
   }
@@ -468,7 +486,8 @@ app.get('/merchant/logout', (c) => {
 
 app.get('/merchant/dashboard', (c) => {
   const merchantId = getMerchantIdFromContext(c)
-  const merchant = getMerchantById(merchantId) || merchants[0]
+  if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const merchantOrders = getOrdersByMerchant(merchantId)
   const merchantProducts = products.filter((p) => p.merchantId === merchantId)
   return c.html(<MerchantDashboardPage merchant={merchant} orders={merchantOrders} products={merchantProducts} />)
@@ -476,12 +495,18 @@ app.get('/merchant/dashboard', (c) => {
 
 app.get('/merchant/products', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const merchantProducts = products.filter((p) => p.merchantId === merchantId)
   return c.html(<MerchantProductsPage products={merchantProducts} />)
 })
-app.get('/merchant/products/new', (c) => c.html(<MerchantAddProductPage />))
+app.get('/merchant/products/new', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
+  return c.html(<MerchantAddProductPage />)
+})
 app.get('/merchant/products/:id', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const product = products.find((p) => p.id === c.req.param('id') && p.merchantId === merchantId)
   if (!product) return c.notFound()
   return c.html(<MerchantProductDetailPage product={product} />)
@@ -489,11 +514,13 @@ app.get('/merchant/products/:id', (c) => {
 
 app.get('/merchant/orders', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const merchantOrders = getOrdersByMerchant(merchantId)
   return c.html(<MerchantOrdersPage orders={merchantOrders} />)
 })
 app.get('/merchant/orders/:id', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const order = getOrderById(c.req.param('id'))
   // Isolation: verify merchant owns this order
   if (!order || order.merchantId !== merchantId) return c.notFound()
@@ -504,6 +531,7 @@ app.get('/merchant/orders/:id', (c) => {
 app.post('/api/merchant/orders/:id/status', async (c) => {
   try {
     const merchantId = getMerchantIdFromContext(c)
+    if (!merchantId) return c.json({ success: false, error: 'Unauthorized' }, 401)
     const orderId = c.req.param('id')
     const { status } = await c.req.json()
     const order = getOrderById(orderId)
@@ -521,6 +549,7 @@ app.post('/api/merchant/orders/:id/status', async (c) => {
 app.post('/api/merchant/orders/:id/send-courier', async (c) => {
   try {
     const merchantId = getMerchantIdFromContext(c)
+    if (!merchantId) return c.json({ success: false, error: 'Unauthorized' }, 401)
     const orderId = c.req.param('id')
     const order = getOrderById(orderId)
     if (!order || order.merchantId !== merchantId) {
@@ -550,26 +579,34 @@ app.post('/api/merchant/orders/:id/send-courier', async (c) => {
 
 app.get('/merchant/earnings', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const merchantOrders = getOrdersByMerchant(merchantId)
   const merchantSettlements = getSettlementsByMerchant(merchantId)
   return c.html(<MerchantEarningsPage orders={merchantOrders} settlements={merchantSettlements} />)
 })
 app.get('/merchant/settlements', (c) => {
   const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
   const merchantSettlements = getSettlementsByMerchant(merchantId)
   return c.html(<MerchantSettlementsPage settlements={merchantSettlements} />)
 })
 app.get('/merchant/store', (c) => {
   const merchantId = getMerchantIdFromContext(c)
-  const merchant = getMerchantById(merchantId) || merchants[0]
+  if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   return c.html(<MerchantStorePage merchant={merchant} />)
 })
 app.get('/merchant/profile', (c) => {
   const merchantId = getMerchantIdFromContext(c)
-  const merchant = getMerchantById(merchantId) || merchants[0]
+  if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   return c.html(<MerchantProfilePage merchant={merchant} />)
 })
-app.get('/merchant/settings', (c) => c.html(<MerchantSettingsPage />))
+app.get('/merchant/settings', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.redirect('/merchant/login')
+  return c.html(<MerchantSettingsPage />)
+})
 
 // ==========================================================================
 // ADMIN ROUTES & CONTROLS
@@ -624,6 +661,58 @@ app.delete('/api/admin/products/:id', (c) => {
   const id = c.req.param('id')
   const ok = deleteProduct(id)
   return c.json({ success: ok, error: ok ? undefined : 'Product not found' })
+})
+
+// ==========================================================================
+// Admin Merchant APIs & Impersonate
+// ==========================================================================
+app.get('/api/admin/merchants', (c) => c.json({ success: true, merchants }))
+
+app.post('/api/admin/merchants', async (c) => {
+  try {
+    const body = await c.req.json()
+    if (!body.storeName || !body.phone) {
+      return c.json({ success: false, error: 'Store name and phone number are required' }, 400)
+    }
+    const newMerchant = addMerchant(body)
+    return c.json({ success: true, merchant: newMerchant }, 201)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.put('/api/admin/merchants/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const updated = updateMerchant(id, body)
+    if (!updated) {
+      return c.json({ success: false, error: 'Merchant not found' }, 404)
+    }
+    return c.json({ success: true, merchant: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+app.delete('/api/admin/merchants/:id', (c) => {
+  const id = c.req.param('id')
+  const ok = deleteMerchant(id)
+  return c.json({ success: ok, error: ok ? undefined : 'Merchant not found' })
+})
+
+// Impersonate merchant (Direct login from admin)
+app.get('/admin/merchants/:id/impersonate', (c) => {
+  const id = c.req.param('id')
+  const merchant = getMerchantById(id)
+  if (!merchant) return c.notFound()
+  setCookie(c, 'merchant_session', merchant.id, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    maxAge: 2592000
+  })
+  return c.redirect('/merchant/orders')
 })
 
 // Admin Landing Pages APIs

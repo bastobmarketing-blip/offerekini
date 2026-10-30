@@ -2,6 +2,7 @@ import type { FC } from 'hono/jsx'
 import { AdminLayout } from '../../layouts/AdminLayout'
 import { FormField } from '../../components/ui/FormField'
 import { categories } from '../../data/categories'
+import { merchants } from '../../data/merchants'
 import type { Product } from '../../types'
 
 export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
@@ -49,6 +50,15 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
                 defaultValue={product.category}
                 required
                 options={categories.map((c) => ({ value: c.slug, label: `${c.name} (${c.nameEn})` }))}
+              />
+              <FormField
+                label="নির্ধারিত মার্চেন্ট (Assigned Merchant)"
+                name="merchantId"
+                type="select"
+                defaultValue={product.merchantId || 'mer-1'}
+                required
+                helpText="এই প্রোডাক্টের অর্ডারগুলো সরাসরি এই মার্চেন্টের প্যানেলে যাবে"
+                options={merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))}
               />
               <FormField label="SKU" name="sku" defaultValue={product.sku || ''} />
               <FormField
@@ -317,6 +327,7 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
                 name: form.name.value,
                 nameEn: form.nameEn.value,
                 category: form.category.value,
+                merchantId: form.merchantId ? form.merchantId.value : undefined,
                 sku: form.sku.value,
                 shortDescription: form.shortDescription.value,
                 description: form.description.value,

@@ -89,6 +89,7 @@ export interface Merchant {
   ownerName: string
   phone: string
   email: string
+  password?: string
   logo: string
   description: string
   address: string
