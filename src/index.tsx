@@ -464,7 +464,7 @@ app.get('/account/order/:id', (c) => {
 
 // Dynamic Landing Page Route (e.g. /my-offer or /l/my-offer)
 const RESERVED_SLUGS = new Set([
-  'cart', 'checkout', 'admin', 'merchant', 'api', 'static', 'product', 'category',
+  'cart', 'checkout', 'admin', 'merchant', 'merchants', 'api', 'static', 'product', 'category',
   'search', 'track-order', 'about', 'contact', 'how-it-works', 'order-success',
   'payment', 'login', 'register', 'jar.webp', 'favicon.ico', 'account', 'privacy',
   'terms', 'delivery-policy', 'return-policy'
@@ -499,6 +499,21 @@ function getMerchantIdFromContext(c: any): string | null {
 // ==========================================================================
 // MERCHANT ROUTES & APIS
 // ==========================================================================
+// Merchant entry shortcuts (e.g. /merchants, /merchant, /merchants/login)
+app.get('/merchants', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (merchantId) return c.redirect('/merchant/orders')
+  return c.html(<MerchantLoginPage />)
+})
+app.get('/merchants/', (c) => c.redirect('/merchants'))
+app.get('/merchants/login', (c) => c.redirect('/merchant/login'))
+app.get('/merchant', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (merchantId) return c.redirect('/merchant/orders')
+  return c.html(<MerchantLoginPage />)
+})
+app.get('/merchant/', (c) => c.redirect('/merchant'))
+
 app.get('/merchant/login', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (merchantId) return c.redirect('/merchant/orders')
