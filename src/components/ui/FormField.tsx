@@ -6,7 +6,8 @@ interface FormFieldProps {
   type?: string
   placeholder?: string
   required?: boolean
-  value?: string
+  value?: string | number
+  defaultValue?: string | number
   error?: string
   className?: string
   helpText?: string
@@ -22,6 +23,7 @@ export const FormField: FC<FormFieldProps> = ({
   placeholder,
   required,
   value,
+  defaultValue,
   error,
   className = '',
   helpText,
@@ -30,6 +32,7 @@ export const FormField: FC<FormFieldProps> = ({
   rows
 }) => {
   const inputId = id || name
+  const effectiveValue = value !== undefined ? String(value) : defaultValue !== undefined ? String(defaultValue) : ''
   const baseClass = `w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ok-lime-400 focus:border-transparent transition-colors ${
     error ? 'border-ok-red' : 'border-gray-200'
   }`
@@ -42,7 +45,7 @@ export const FormField: FC<FormFieldProps> = ({
       {type === 'select' && options ? (
         <select id={inputId} name={name} required={required} class={baseClass}>
           {options.map((opt) => (
-            <option value={opt.value} selected={opt.value === value}>
+            <option value={opt.value} selected={opt.value === effectiveValue}>
               {opt.label}
             </option>
           ))}
@@ -56,7 +59,7 @@ export const FormField: FC<FormFieldProps> = ({
           rows={rows || 4}
           class={baseClass}
         >
-          {value}
+          {effectiveValue}
         </textarea>
       ) : (
         <input
@@ -65,7 +68,7 @@ export const FormField: FC<FormFieldProps> = ({
           name={name}
           placeholder={placeholder}
           required={required}
-          value={value}
+          value={effectiveValue}
           class={baseClass}
         />
       )}

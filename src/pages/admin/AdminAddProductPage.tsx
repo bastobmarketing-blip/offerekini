@@ -37,8 +37,11 @@ export const AdminAddProductPage: FC = () => (
               name="merchantId"
               type="select"
               required
-              helpText="এই প্রোডাক্টের অর্ডারগুলো সরাসরি এই মার্চেন্টের প্যানেলে যাবে"
-              options={merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))}
+              helpText="💡 এই প্রোডাক্ট সেভ করার সাথে সাথে এর অতীত ও ভবিষ্যতের সকল অর্ডার অটোমেটিক এই মার্চেন্টের কাছে বাইন্ড হয়ে যাবে"
+              options={[
+                { value: '', label: '-- মার্চেন্ট নির্বাচন করুন --' },
+                ...merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))
+              ]}
             />
             <FormField label="SKU (ঐচ্ছিক)" name="sku" placeholder="OK-PR-001" />
             <FormField label="Short Description (ঐচ্ছিক)" name="shortDescription" placeholder="এক লাইনে মূল ফিচার বা সুবিধা" className="sm:col-span-2" />

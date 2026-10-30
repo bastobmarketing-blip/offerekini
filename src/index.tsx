@@ -788,6 +788,13 @@ app.post('/api/admin/products', async (c) => {
       return c.json({ success: false, error: 'Product name and price are required' }, 400)
     }
     const newProduct = addProduct(body)
+
+    // Automatically bind all existing and future orders for this product to the assigned merchant
+    if (body.merchantId) {
+      rebindAllOrdersForProduct(newProduct.id, body.merchantId)
+      rebindAllOrdersForProduct(newProduct.name, body.merchantId)
+    }
+
     return c.json({ success: true, product: newProduct }, 201)
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
@@ -802,6 +809,13 @@ app.put('/api/admin/products/:id', async (c) => {
     if (!updated) {
       return c.json({ success: false, error: 'Product not found' }, 404)
     }
+
+    // Automatically bind all matching past and future orders if merchantId is assigned or changed
+    if (body.merchantId) {
+      rebindAllOrdersForProduct(updated.id, body.merchantId)
+      rebindAllOrdersForProduct(updated.name, body.merchantId)
+    }
+
     return c.json({ success: true, product: updated })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)

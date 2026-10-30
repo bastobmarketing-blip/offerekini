@@ -52,12 +52,12 @@ export const AdminEditProductPage: FC<{ product: Product }> = ({ product }) => {
                 options={categories.map((c) => ({ value: c.slug, label: `${c.name} (${c.nameEn})` }))}
               />
               <FormField
-                label="নির্ধারিত মার্চেন্ট (Assigned Merchant)"
+                label="নির্ধারিত মার্চেন্ট (Assigned Merchant) *"
                 name="merchantId"
                 type="select"
                 defaultValue={product.merchantId || 'mer-1'}
                 required
-                helpText="এই প্রোডাক্টের অর্ডারগুলো সরাসরি এই মার্চেন্টের প্যানেলে যাবে"
+                helpText="💡 মার্চেন্ট সিলেক্ট বা পরিবর্তন করলে এই প্রোডাক্টের আগের ও ভবিষ্যতের সকল অর্ডার স্বয়ংক্রিয়ভাবে নির্বাচিত মার্চেন্টে চলে যাবে"
                 options={merchants.map((m) => ({ value: m.id, label: `${m.storeName} (${m.ownerName} - ${m.phone})` }))}
               />
               <FormField label="SKU" name="sku" defaultValue={product.sku || ''} />

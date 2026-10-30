@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import { AdminLayout } from '../../layouts/AdminLayout'
 import { products } from '../../data/products'
+import { merchants, getMerchantById } from '../../data/merchants'
 import { formatBDT } from '../../utils/format'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { getLandingPageForProduct, getLandingPageUrl } from '../../data/landingPages'
@@ -11,7 +12,7 @@ export const AdminProductsPage: FC = () => {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 class="text-xl font-bold text-ok-charcoal">All Products ({products.length})</h1>
-          <p class="text-xs text-ok-gray-500">প্ল্যাটফর্মের সকল প্রোডাক্টের তালিকা ও ম্যানেজমেন্ট</p>
+          <p class="text-xs text-ok-gray-500">প্ল্যাটফর্মের সকল প্রোডাক্টের তালিকা ও নির্ধারিত মার্চেন্ট ম্যানেজমেন্ট</p>
         </div>
         <div class="flex items-center gap-3">
           <a
@@ -31,9 +32,9 @@ export const AdminProductsPage: FC = () => {
               <tr>
                 <th class="p-4">Product</th>
                 <th class="p-4">Category</th>
-                <th class="p-4">Ref Price</th>
-                <th class="p-4">OfferKini Price</th>
-                <th class="p-4">Savings</th>
+                <th class="p-4">Assigned Merchant</th>
+                <th class="p-4">Price & Savings</th>
+                <th class="p-4">Stock</th>
                 <th class="p-4">Status</th>
                 <th class="p-4 text-right">Action</th>
               </tr>
@@ -42,6 +43,8 @@ export const AdminProductsPage: FC = () => {
               {products.map((p) => {
                 const lp = getLandingPageForProduct(p.id) || getLandingPageForProduct(p.slug)
                 const viewUrl = lp ? getLandingPageUrl(lp) : `/product/${p.slug}`
+                const assignedMerchant = getMerchantById(p.merchantId || '')
+
                 return (
                   <tr id={`row-${p.id}`} class="hover:bg-gray-50/60 transition-colors">
                     <td class="p-4">
@@ -60,13 +63,51 @@ export const AdminProductsPage: FC = () => {
                         </div>
                       </div>
                     </td>
+
                     <td class="p-4 text-xs font-medium text-ok-gray-600">{p.category}</td>
-                    <td class="p-4 text-xs line-through text-ok-gray-400">{formatBDT(p.referencePrice)}</td>
-                    <td class="p-4 font-extrabold text-ok-green-800">{formatBDT(p.offerKiniPrice)}</td>
-                    <td class="p-4 text-xs font-bold text-ok-lime-600">বাঁচছে {formatBDT(p.savings)}</td>
+
+                    {/* ASSIGNED MERCHANT WITH QUICK BIND DROPDOWN */}
+                    <td class="p-4">
+                      <div class="space-y-1">
+                        {assignedMerchant ? (
+                          <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              🏪 {assignedMerchant.storeName}
+                            </span>
+                          </div>
+                        ) : (
+                          <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            ⚠️ Unassigned
+                          </span>
+                        )}
+                        <select
+                          onchange={`quickAssignProductMerchant('${p.id}', this.value)`}
+                          class="text-[11px] font-medium p-1 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-ok-green-700 block mt-1"
+                        >
+                          <option value="">-- মার্চেন্ট পরিবর্তন / বাইন্ড --</option>
+                          {merchants.map((m) => (
+                            <option value={m.id} selected={m.id === p.merchantId}>
+                              {m.storeName} ({m.phone})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </td>
+
+                    <td class="p-4">
+                      <p class="font-extrabold text-ok-green-800">{formatBDT(p.offerKiniPrice)}</p>
+                      <p class="text-xs line-through text-ok-gray-400">{formatBDT(p.referencePrice)}</p>
+                      <p class="text-[11px] font-bold text-ok-lime-600">বাঁচছে {formatBDT(p.savings)}</p>
+                    </td>
+
+                    <td class="p-4 text-xs font-bold text-slate-700">
+                      {p.stock || 50} টি
+                    </td>
+
                     <td class="p-4">
                       <StatusBadge status={p.status} />
                     </td>
+
                     <td class="p-4 text-right">
                       <div class="flex items-center justify-end gap-2">
                         <a
@@ -106,6 +147,26 @@ export const AdminProductsPage: FC = () => {
 
       <script dangerouslySetInnerHTML={{
         __html: `
+          async function quickAssignProductMerchant(productId, merchantId) {
+            if (!merchantId) return;
+            try {
+              const res = await fetch('/api/admin/products/' + productId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ merchantId: merchantId })
+              });
+              const data = await res.json();
+              if (data.success) {
+                alert('প্রোডাক্টটি সফলভাবে এই মার্চেন্টের সাথে বাইন্ড হয়েছে এবং অতীতের সকল অর্ডার অটো-অ্যাসাইন হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+              }
+            } catch (e) {
+              alert('Error: ' + e.message);
+            }
+          }
+
           async function deleteProductRow(id, name) {
             if (!confirm('আপনি কি নিশ্চিতভাবে "' + name + '" প্রোডাক্টটি ডিলিট করতে চান?')) {
               return;
