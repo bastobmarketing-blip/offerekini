@@ -117,7 +117,7 @@ export const AdminLandingPagesPage: FC = () => {
       </div>
 
       {/* SECTION MANAGER MODAL (Elementor-Style) */}
-      <div id="manage-sections-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div id="manage-sections-modal" style="display:none;" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8">
           <div class="flex items-center justify-between border-b pb-4 mb-5">
             <div>
@@ -468,112 +468,143 @@ export const AdminLandingPagesPage: FC = () => {
           // ========================================================
           // ELEMENTOR-STYLE SECTION MANAGER JAVASCRIPT
           // ========================================================
-          var currentManagingSlug = '';
+          var currentManagingSlug = "";
           var currentSectionsData = [];
 
           window.openSectionManager = async function(slug, pageName) {
             currentManagingSlug = slug;
-            var modal = document.getElementById('manage-sections-modal');
-            var title = document.getElementById('sec-modal-title');
-            var sub = document.getElementById('sec-modal-subtitle');
-            var loading = document.getElementById('sections-loading');
-            var container = document.getElementById('sections-list-container');
-            var status = document.getElementById('sec-save-status');
+            var modal = document.getElementById("manage-sections-modal");
+            var title = document.getElementById("sec-modal-title");
+            var sub = document.getElementById("sec-modal-subtitle");
+            var loading = document.getElementById("sections-loading");
+            var container = document.getElementById("sections-list-container");
+            var status = document.getElementById("sec-save-status");
 
-            if (status) status.textContent = '';
-            modal.classList.remove('hidden');
-            if (title) title.textContent = pageName + ' — সেকশন ম্যানেজার';
-            if (sub) sub.textContent = 'পৃষ্ঠা: /' + slug + ' | Elementor-এর মতো যেকোনো সেকশন অন বা অফ রাখুন';
+            if (status) status.textContent = "";
+            if (modal) modal.style.display = "flex";
+            if (title) title.textContent = pageName + " — সেকশন ম্যানেজার";
+            if (sub) sub.textContent = "পৃষ্ঠা: /" + slug + " | Elementor-এর মতো যেকোনো সেকশন অন বা অফ রাখুন";
 
-            if (loading) loading.style.display = 'block';
-            if (container) container.innerHTML = '';
+            if (loading) loading.style.display = "block";
+            if (container) container.innerHTML = "";
 
             try {
-              var res = await fetch('/api/admin/landing-pages/' + slug + '/sections');
+              var res = await fetch("/api/admin/landing-pages/" + slug + "/sections");
               var data = await res.json();
-              if (loading) loading.style.display = 'none';
+              if (loading) loading.style.display = "none";
 
-              if (data.success && data.sections) {
+              if (data && data.success && data.sections) {
                 currentSectionsData = data.sections;
                 renderSectionsList(data.sections);
               } else {
-                if (container) container.innerHTML = '<p class="text-xs text-rose-500 p-4">সেকশন লোড করা সম্ভব হয়নি</p>';
+                if (container) container.innerHTML = "<p class='text-xs text-rose-500 p-4'>সেকশন লোড করা সম্ভব হয়নি</p>";
               }
             } catch(e) {
-              if (loading) loading.style.display = 'none';
-              if (container) container.innerHTML = '<p class="text-xs text-rose-500 p-4">ত্রুটি: ' + e.message + '</p>';
+              if (loading) loading.style.display = "none";
+              if (container) container.innerHTML = "<p class='text-xs text-rose-500 p-4'>ত্রুটি: " + e.message + "</p>";
             }
           };
 
           function renderSectionsList(sections) {
-            var container = document.getElementById('sections-list-container');
+            var container = document.getElementById("sections-list-container");
             if (!container) return;
-            container.innerHTML = sections.map(function(sec, idx) {
-              return '<div class="flex items-center justify-between p-3.5 rounded-2xl border ' + (sec.enabled ? 'border-gray-200 bg-white shadow-xs' : 'border-gray-200/60 bg-gray-50/80 opacity-70') + ' transition-all hover:border-indigo-300">' +
-                '<div class="flex items-center gap-3">' +
-                  '<span class="w-8 h-8 rounded-xl ' + (sec.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-400') + ' flex items-center justify-center font-bold text-xs shrink-0">' +
-                    (idx + 1) +
-                  '</span>' +
-                  '<div>' +
-                    '<div class="flex items-center gap-2">' +
-                      '<h4 class="font-bold text-sm text-slate-900">' + sec.title + '</h4>' +
-                      '<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md ' + (sec.enabled ? 'bg-emerald-100/70 text-emerald-800' : 'bg-gray-200 text-gray-600') + '">' +
-                        '#' + sec.id +
-                      '</span>' +
-                    '</div>' +
-                    '<p class="text-[11px] ' + (sec.enabled ? 'text-emerald-700 font-semibold' : 'text-gray-400') + ' mt-0.5">' +
-                      (sec.enabled ? '👁️ লাইভ পেজে প্রদর্শিত হচ্ছে (Active)' : '🚫 লাইভ পেজ থেকে হাইড করা আছে (Hidden)') +
-                    '</p>' +
-                  '</div>' +
-                '</div>' +
-                '<label class="relative inline-flex items-center cursor-pointer shrink-0 ml-3">' +
-                  '<input type="checkbox" name="sec_' + sec.id + '" value="' + sec.id + '" class="sr-only peer" ' + (sec.enabled ? 'checked' : '') + ' onchange="this.closest(\'.flex\').classList.toggle(\'opacity-70\', !this.checked)">' +
-                  '<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>' +
-                '</label>' +
-              '</div>';
-            }).join('');
+            container.innerHTML = "";
+
+            sections.forEach(function(sec, idx) {
+              var card = document.createElement("div");
+              card.className = "flex items-center justify-between p-3.5 rounded-2xl border transition-all " + 
+                (sec.enabled ? "border-gray-200 bg-white shadow-xs" : "border-gray-200/60 bg-gray-50/80 opacity-70");
+
+              var left = document.createElement("div");
+              left.className = "flex items-center gap-3";
+
+              var numBadge = document.createElement("span");
+              numBadge.className = "w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 " + 
+                (sec.enabled ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-400");
+              numBadge.textContent = String(idx + 1);
+
+              var info = document.createElement("div");
+              info.innerHTML = "<div class='flex items-center gap-2'>" +
+                "<h4 class='font-bold text-sm text-slate-900'>" + sec.title + "</h4>" +
+                "<span class='text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md " + 
+                  (sec.enabled ? "bg-emerald-100/70 text-emerald-800" : "bg-gray-200 text-gray-600") + "'>#" + sec.id + "</span>" +
+                "</div>" +
+                "<p class='text-[11px] mt-0.5 " + (sec.enabled ? "text-emerald-700 font-semibold" : "text-gray-400") + "'>" +
+                  (sec.enabled ? "👁️ লাইভ পেজে প্রদর্শিত হচ্ছে (Active)" : "🚫 লাইভ পেজ থেকে হাইড করা আছে (Hidden)") + 
+                "</p>";
+
+              left.appendChild(numBadge);
+              left.appendChild(info);
+
+              var toggleLabel = document.createElement("label");
+              toggleLabel.className = "relative inline-flex items-center cursor-pointer shrink-0 ml-3";
+
+              var input = document.createElement("input");
+              input.type = "checkbox";
+              input.name = "sec_" + sec.id;
+              input.value = sec.id;
+              input.checked = Boolean(sec.enabled);
+              input.className = "sr-only peer";
+              input.addEventListener("change", function() {
+                card.classList.toggle("opacity-70", !this.checked);
+              });
+
+              var switchDiv = document.createElement("div");
+              switchDiv.className = "w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600";
+
+              toggleLabel.appendChild(input);
+              toggleLabel.appendChild(switchDiv);
+
+              card.appendChild(left);
+              card.appendChild(toggleLabel);
+              container.appendChild(card);
+            });
           }
 
           window.closeSectionManager = function() {
-            var modal = document.getElementById('manage-sections-modal');
-            if (modal) modal.classList.add('hidden');
+            var modal = document.getElementById("manage-sections-modal");
+            if (modal) modal.style.display = "none";
           };
 
-          var manageForm = document.getElementById('manage-sections-form');
+          var manageForm = document.getElementById("manage-sections-form");
           if (manageForm) {
-            manageForm.addEventListener('submit', async function(e) {
+            manageForm.addEventListener("submit", async function(e) {
               e.preventDefault();
-              var btn = document.getElementById('sec-save-btn');
-              var status = document.getElementById('sec-save-status');
-              btn.disabled = true;
-              btn.innerHTML = '<span class="ok-spinner"></span> সেভ হচ্ছে...';
+              var btn = document.getElementById("sec-save-btn");
+              var status = document.getElementById("sec-save-status");
+              if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<span class='ok-spinner mr-1'></span> সেভ হচ্ছে...";
+              }
 
               var visibility = {};
               currentSectionsData.forEach(function(sec) {
-                var cb = document.querySelector('input[name="sec_' + sec.id + '"]');
+                var cb = document.querySelector("input[name='sec_" + sec.id + "']");
                 visibility[sec.id] = cb ? cb.checked : false;
               });
 
               try {
-                var res = await fetch('/api/admin/landing-pages/' + currentManagingSlug + '/sections', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                var res = await fetch("/api/admin/landing-pages/" + currentManagingSlug + "/sections", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ visibility: visibility })
                 });
                 var data = await res.json();
-                if (data.success) {
-                  status.textContent = '✓ সেটিংস সফলভাবে সেভ হয়েছে!';
+                if (data && data.success) {
+                  if (status) status.textContent = "✓ সেটিংস সফলভাবে সেভ হয়েছে!";
                   setTimeout(function() {
                     closeSectionManager();
-                  }, 700);
+                  }, 600);
                 } else {
-                  alert('ত্রুটি: ' + (data.error || 'Failed'));
+                  alert("ত্রুটি: " + (data.error || "Failed"));
                 }
               } catch(err) {
-                alert('এরর: ' + err.message);
+                alert("এরর: " + err.message);
               } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-check"></i> Save Visibility Settings';
+                if (btn) {
+                  btn.disabled = false;
+                  btn.innerHTML = "<i class='fas fa-check'></i> Save Visibility Settings";
+                }
               }
             });
           }
