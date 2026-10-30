@@ -103,6 +103,7 @@ export interface Merchant {
 
 export type OrderStatus =
   | 'pending'
+  | 'called'
   | 'accepted'
   | 'processing'
   | 'ready'

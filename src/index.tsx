@@ -69,8 +69,8 @@ import { AdminPendingProductsPage } from './pages/admin/AdminPendingProductsPage
 import { AdminHomepagePage } from './pages/admin/AdminHomepagePage'
 import { getAdminCredentials, verifyAdminPassword, updateAdminPassword, resetAdminPassword } from './data/admin'
 import { DynamicLandingPage } from './pages/customer/DynamicLandingPage'
-import { addProduct, deleteProduct, updateProduct } from './data/products'
-import { updateOrderStatus, updateOrderCourier, updateOrderMerchant } from './data/orders'
+import { addProduct, deleteProduct, updateProduct, bindProductToMerchant } from './data/products'
+import { updateOrderStatus, updateOrderCourier, updateOrderMerchant, rebindAllOrdersForProduct } from './data/orders'
 import { getAllLandingPages, getLandingPageBySlug, getLandingPageForProduct, getLandingPageUrl, createLandingPage, deleteLandingPage } from './data/landingPages'
 import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
 import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings, renderPixelBaseScript } from './utils/tracking'
@@ -746,6 +746,34 @@ app.put('/api/admin/orders/:id/merchant', async (c) => {
       return c.json({ success: false, error: 'Order not found' }, 404)
     }
     return c.json({ success: true, order: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Product-Merchant Binding & Retroactive Reassign API
+app.post('/api/admin/products/bind', async (c) => {
+  try {
+    const { productId, merchantId } = await c.req.json()
+    if (!productId || !merchantId) {
+      return c.json({ success: false, error: 'Product and Merchant are required' }, 400)
+    }
+
+    const boundProduct = bindProductToMerchant(productId, merchantId)
+    if (!boundProduct) {
+      return c.json({ success: false, error: 'Product not found' }, 404)
+    }
+
+    // Retroactively update all previous orders for this product to this merchant
+    const count = rebindAllOrdersForProduct(boundProduct.id, merchantId)
+    const countByName = rebindAllOrdersForProduct(boundProduct.name, merchantId)
+    const totalReassigned = count + countByName
+
+    return c.json({
+      success: true,
+      product: boundProduct,
+      reassignedOrders: totalReassigned
+    })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }

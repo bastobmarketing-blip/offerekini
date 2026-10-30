@@ -827,3 +827,18 @@ export function updateProduct(id: string, updates: Partial<Product>): Product | 
   return merged
 }
 
+export function bindProductToMerchant(productIdOrSlug: string, merchantId: string): Product | null {
+  const query = productIdOrSlug.trim().toLowerCase()
+  const p = products.find(
+    (item) =>
+      item.id.toLowerCase() === query ||
+      item.slug.toLowerCase() === query ||
+      item.name.toLowerCase() === query ||
+      item.name.toLowerCase().includes(query) ||
+      query.includes(item.name.toLowerCase())
+  )
+  if (!p) return null
+
+  return updateProduct(p.id, { merchantId })
+}
+

@@ -29,6 +29,8 @@ export function orderStatusTone(status: string): 'green' | 'lime' | 'red' | 'gra
     case 'shipped':
     case 'ready':
       return 'blue'
+    case 'called':
+      return 'blue'
     case 'processing':
     case 'accepted':
       return 'lime'
@@ -45,11 +47,12 @@ export function orderStatusTone(status: string): 'green' | 'lime' | 'red' | 'gra
 export function orderStatusLabel(status: string): string {
   const map: Record<string, string> = {
     pending: 'পেন্ডিং',
+    called: 'কল দেওয়া হয়েছে',
     accepted: 'গ্রহণ করা হয়েছে',
-    processing: 'প্রসেসিং',
+    processing: 'প্যাকিং চলছে',
     ready: 'প্রস্তুত',
-    shipped: 'শিপড',
-    delivered: 'ডেলিভারড',
+    shipped: 'কুরিয়ারে পাঠানো',
+    delivered: 'ডেলিভার্ড',
     cancelled: 'বাতিল',
     returned: 'রিটার্ন'
   }

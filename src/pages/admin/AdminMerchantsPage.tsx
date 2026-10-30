@@ -14,158 +14,262 @@ export const AdminMerchantsPage: FC = () => {
     <AdminLayout title="Merchants" active="merchants">
       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h1 class="text-xl font-bold text-ok-charcoal">মার্চেন্ট ম্যানেজমেন্ট</h1>
-          <p class="text-xs text-ok-gray-500">প্ল্যাটফর্মে নিবন্ধিত মার্চেন্ট, আইডি, পাসওয়ার্ড ও প্রোডাক্ট অ্যাসাইনমেন্ট</p>
+          <h1 class="text-xl font-bold text-ok-charcoal">মার্চেন্ট ও প্রোডাক্ট অটো-বাইন্ডিং প্যানেল</h1>
+          <p class="text-xs text-ok-gray-500">প্রোডাক্ট সিলেক্ট করে মার্চেন্টে পার্মানেন্টলি অ্যাসাইন করুন ও অর্ডার ট্র্যাক করুন</p>
         </div>
-        <button
-          type="button"
-          id="btn-open-add-merchant"
-          class="bg-ok-green-800 hover:bg-ok-green-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition-all"
-        >
-          <i class="fas fa-plus"></i> নতুন মার্চেন্ট যোগ করুন
-        </button>
-      </div>
-
-      {/* STATS TILES */}
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p class="text-xs text-ok-gray-400 font-semibold">মোট মার্চেন্ট</p>
-          <p class="text-2xl font-black text-ok-charcoal mt-1">{totalMerchants}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p class="text-xs text-ok-gray-400 font-semibold">সক্রিয় মার্চেন্ট</p>
-          <p class="text-2xl font-black text-emerald-600 mt-1">{activeMerchants}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p class="text-xs text-ok-gray-400 font-semibold">মোট প্রোডাক্ট সংখ্যা</p>
-          <p class="text-2xl font-black text-ok-green-800 mt-1">{products.length}</p>
-        </div>
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <p class="text-xs text-ok-gray-400 font-semibold">মোট অর্ডার</p>
-          <p class="text-2xl font-black text-indigo-600 mt-1">{orders.length}</p>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="btn-open-bind-product-modal"
+            class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition-all"
+          >
+            <i class="fas fa-link"></i> প্রোডাক্ট মার্চেন্টে বাইন্ড করুন
+          </button>
+          <button
+            type="button"
+            id="btn-open-add-merchant"
+            class="bg-ok-green-800 hover:bg-ok-green-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition-all"
+          >
+            <i class="fas fa-plus"></i> নতুন মার্চেন্ট
+          </button>
         </div>
       </div>
 
-      {/* MERCHANTS TABLE */}
-      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-ok-card">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-ok-gray-500 font-semibold border-b border-gray-100 text-xs">
-              <tr>
-                <th class="p-4">মার্চেন্ট / স্টোর</th>
-                <th class="p-4">মালিক ও ফোন</th>
-                <th class="p-4">লগইন ক্রেডেনশিয়াল</th>
-                <th class="p-4">এসাইন করা প্রোডাক্ট</th>
-                <th class="p-4">অর্ডার / বিক্রয়</th>
-                <th class="p-4">স্ট্যাটাস</th>
-                <th class="p-4 text-right">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              {merchants.map((m) => {
-                const assignedProducts = products.filter((p) => p.merchantId === m.id)
-                const merchantOrders = orders.filter((o) => o.merchantId === m.id)
-                const totalSales = merchantOrders
-                  .filter((o) => o.status !== 'cancelled')
-                  .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+      {/* QUICK BIND BANNER */}
+      <div class="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-2xl p-5 text-white mb-6 shadow-md">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-base flex items-center gap-2">
+              <i class="fas fa-wand-magic-sparkles text-ok-lime-400"></i> ১-ক্লিকে অটো-অ্যাসাইন সিস্টেম
+            </h3>
+            <p class="text-xs text-emerald-100 mt-1 max-w-xl">
+              ওয়েবসাইটের যেকোনো প্রোডাক্ট একবার কোনো মার্চেন্টের সাথে বাইন্ড (Bind) করে দিলে, ওই প্রোডাক্টের অতীত ও ভবিষ্যতের সকল অর্ডার স্বয়ংক্রিয়ভাবে ওই মার্চেন্টের প্যানেলে চলে যাবে।
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick="document.getElementById('modal-bind-product').classList.remove('hidden')"
+            class="bg-ok-lime-400 hover:bg-ok-lime-500 text-ok-green-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap self-start md:self-center"
+          >
+            অটো-বাইন্ড শুরু করুন →
+          </button>
+        </div>
+      </div>
 
-                return (
-                  <tr class="hover:bg-gray-50/60 transition-colors">
-                    <td class="p-4">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-ok-green-800 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                          {m.storeName.charAt(0)}
-                        </div>
-                        <div>
-                          <p class="font-bold text-ok-charcoal">{m.storeName}</p>
-                          <span class="inline-block text-[11px] font-mono text-ok-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                            {m.id}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="p-4">
-                      <p class="font-bold text-ok-charcoal">{m.ownerName}</p>
-                      <p class="text-xs text-ok-gray-500 font-mono">{m.phone}</p>
-                      <p class="text-[11px] text-ok-gray-400">{m.address}</p>
-                    </td>
-                    <td class="p-4">
-                      <div class="space-y-1">
-                        <div class="flex items-center gap-1.5">
-                          <span class="text-[10px] uppercase font-bold text-gray-400">User:</span>
-                          <span class="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded select-all">
-                            {m.phone}
-                          </span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                          <span class="text-[10px] uppercase font-bold text-gray-400">Pass:</span>
-                          <span
-                            class="text-xs font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded select-all"
-                            id={`pass-text-${m.id}`}
-                          >
-                            {m.password || 'password123'}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="p-4">
-                      <div class="flex items-center gap-1.5">
-                        <span class="px-2 py-1 bg-emerald-50 text-emerald-800 font-bold rounded-lg text-xs border border-emerald-200">
-                          {assignedProducts.length} টি প্রোডাক্ট
-                        </span>
-                      </div>
-                      {assignedProducts.length > 0 && (
-                        <p class="text-[11px] text-gray-500 mt-1 line-clamp-1 max-w-[200px]" title={assignedProducts.map(p => p.name).join(', ')}>
-                          {assignedProducts.map((p) => p.name).join(', ')}
-                        </p>
-                      )}
-                    </td>
-                    <td class="p-4">
-                      <p class="font-bold text-ok-green-800">{formatBDT(totalSales || m.totalSales || 0)}</p>
-                      <p class="text-xs text-ok-gray-500">{merchantOrders.length || m.totalOrders || 0} টি অর্ডার</p>
-                    </td>
-                    <td class="p-4">
+      {/* MERCHANTS DETAILED CARDS & STATS */}
+      <div class="space-y-4">
+        {merchants.map((m) => {
+          const assignedProducts = products.filter((p) => p.merchantId === m.id)
+          const mOrders = orders.filter((o) => o.merchantId === m.id)
+
+          const pendingCount = mOrders.filter((o) => o.status === 'pending').length
+          const calledCount = mOrders.filter((o) => o.status === 'called').length
+          const inTransitCount = mOrders.filter((o) => o.status === 'shipped' || o.status === 'ready').length
+          const deliveredCount = mOrders.filter((o) => o.status === 'delivered').length
+          const cancelledCount = mOrders.filter((o) => o.status === 'cancelled' || o.status === 'returned').length
+
+          const totalRevenue = mOrders
+            .filter((o) => o.status !== 'cancelled')
+            .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+
+          return (
+            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+                {/* MERCHANT INFO */}
+                <div class="flex items-start sm:items-center gap-3.5">
+                  <div class="w-12 h-12 rounded-2xl bg-ok-green-800 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
+                    {m.storeName.charAt(0)}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <h2 class="font-bold text-base text-ok-charcoal">{m.storeName}</h2>
+                      <span class="text-[11px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                        ID: {m.id}
+                      </span>
                       <StatusBadge status={m.status} />
-                    </td>
-                    <td class="p-4 text-right">
-                      <div class="flex items-center justify-end gap-1.5">
-                        <a
-                          href={`/admin/merchants/${m.id}/impersonate`}
-                          target="_blank"
-                          title="মার্চেন্ট হিসেবে লগইন করে প্যানেল দেখুন"
-                          class="bg-ok-green-50 hover:bg-ok-green-100 text-ok-green-800 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-ok-green-200 transition-colors inline-flex items-center gap-1"
-                        >
-                          <i class="fas fa-arrow-right-to-bracket text-[10px]"></i> লগইন করুন
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-ok-gray-500 mt-1 flex-wrap">
+                      <span><i class="fas fa-user text-gray-400 mr-1"></i>{m.ownerName}</span>
+                      <span><i class="fas fa-phone text-gray-400 mr-1 font-mono"></i>{m.phone}</span>
+                      <span><i class="fas fa-location-dot text-gray-400 mr-1"></i>{m.address}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOGIN CREDENTIALS & ACTIONS */}
+                <div class="flex items-center gap-3 self-end lg:self-center flex-wrap">
+                  <div class="text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-200">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Pass: </span>
+                    <span class="font-mono font-bold text-slate-800 select-all">{m.password || 'password123'}</span>
+                  </div>
+                  <a
+                    href={`/admin/merchants/${m.id}/impersonate`}
+                    target="_blank"
+                    class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-2 rounded-xl border border-emerald-200 transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <i class="fas fa-arrow-right-to-bracket text-[11px]"></i> মার্চেন্ট লগইন
+                  </a>
+                  <button
+                    type="button"
+                    onclick={`openEditMerchantModal(${JSON.stringify(JSON.stringify(m))})`}
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold p-2 rounded-xl transition-colors"
+                    title="এডিট"
+                  >
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    onclick={`deleteMerchantAction('${m.id}', '${m.storeName}')`}
+                    class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold p-2 rounded-xl transition-colors"
+                    title="ডিলিট"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              {/* METRICS TILES */}
+              <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5 mt-4">
+                <div class="bg-gray-50/80 rounded-xl p-2.5 text-center border border-gray-100">
+                  <p class="text-[10px] text-gray-400 font-bold uppercase">মোট অর্ডার</p>
+                  <p class="text-lg font-black text-slate-800 mt-0.5">{mOrders.length}</p>
+                </div>
+                <div class="bg-amber-50/70 rounded-xl p-2.5 text-center border border-amber-100">
+                  <p class="text-[10px] text-amber-700 font-bold uppercase">পেন্ডিং</p>
+                  <p class="text-lg font-black text-amber-700 mt-0.5">{pendingCount}</p>
+                </div>
+                <div class="bg-blue-50/70 rounded-xl p-2.5 text-center border border-blue-100">
+                  <p class="text-[10px] text-blue-700 font-bold uppercase">কল দেওয়া হয়েছে</p>
+                  <p class="text-lg font-black text-blue-700 mt-0.5">{calledCount}</p>
+                </div>
+                <div class="bg-sky-50/70 rounded-xl p-2.5 text-center border border-sky-100">
+                  <p class="text-[10px] text-sky-700 font-bold uppercase">ট্রানজিটে / কুরিয়ার</p>
+                  <p class="text-lg font-black text-sky-700 mt-0.5">{inTransitCount}</p>
+                </div>
+                <div class="bg-emerald-50/70 rounded-xl p-2.5 text-center border border-emerald-100">
+                  <p class="text-[10px] text-emerald-700 font-bold uppercase">ডেলিভার্ড</p>
+                  <p class="text-lg font-black text-emerald-700 mt-0.5">{deliveredCount}</p>
+                </div>
+                <div class="bg-rose-50/70 rounded-xl p-2.5 text-center border border-rose-100">
+                  <p class="text-[10px] text-rose-700 font-bold uppercase">বাতিল / রিটার্ন</p>
+                  <p class="text-lg font-black text-rose-700 mt-0.5">{cancelledCount}</p>
+                </div>
+              </div>
+
+              {/* ASSIGNED PRODUCTS LIST */}
+              <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-slate-700">অ্যাসাইন করা প্রোডাক্ট ({assignedProducts.length}):</span>
+                  {assignedProducts.length === 0 ? (
+                    <span class="text-gray-400 italic">কোনো প্রোডাক্ট অ্যাসাইন করা নেই</span>
+                  ) : (
+                    assignedProducts.map((p) => (
+                      <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5">
+                        📦 {p.name}
+                        <a href={`/admin/products/${p.id}/edit`} class="text-emerald-600 hover:text-emerald-900 ml-1">
+                          <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
                         </a>
-                        <button
-                          type="button"
-                          onclick={`openEditMerchantModal(${JSON.stringify(JSON.stringify(m))})`}
-                          title="মার্চেন্ট এডিট করুন"
-                          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors"
-                        >
-                          <i class="fas fa-pen"></i>
-                        </button>
-                        <button
-                          type="button"
-                          onclick={`deleteMerchantAction('${m.id}', '${m.storeName}')`}
-                          title="মার্চেন্ট মুছে ফেলুন"
-                          class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors"
-                        >
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                <div class="text-right">
+                  <span class="text-gray-400">মোট বিক্রয়: </span>
+                  <span class="font-extrabold text-ok-green-800 text-sm">{formatBDT(totalRevenue)}</span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* AUTO-BIND PRODUCT TO MERCHANT MODAL */}
+      <div id="modal-bind-product" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+          <button
+            type="button"
+            onclick="document.getElementById('modal-bind-product').classList.add('hidden')"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+          >
+            ✕
+          </button>
+          <div class="mb-5">
+            <h3 class="text-lg font-bold text-ok-charcoal flex items-center gap-2">
+              <i class="fas fa-link text-emerald-600"></i> প্রোডাক্ট ও মার্চেন্ট অটো-বাইন্ডিং
+            </h3>
+            <p class="text-xs text-ok-gray-500 mt-1">
+              প্রোডাক্ট সিলেক্ট করে মার্চেন্ট নির্ধারণ করুন। এরপর থেকে এই প্রোডাক্টের সকল অর্ডার সরাসরি এই মার্চেন্টের কাছে চলে যাবে।
+            </p>
+          </div>
+
+          <form id="form-bind-product" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-ok-charcoal mb-1">প্রোডাক্ট নির্বাচন বা নাম খুঁজুন *</label>
+              <select
+                name="productId"
+                id="bind-select-product"
+                required
+                class="w-full text-xs p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 bg-white"
+              >
+                <option value="">-- প্রোডাক্ট নির্বাচন করুন --</option>
+                {products.map((p) => (
+                  <option value={p.id}>
+                    {p.name} ({formatBDT(p.offerKiniPrice)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-ok-charcoal mb-1">নির্ধারিত মার্চেন্ট নির্বাচন করুন *</label>
+              <select
+                name="merchantId"
+                id="bind-select-merchant"
+                required
+                class="w-full text-xs p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 bg-white"
+              >
+                <option value="">-- মার্চেন্ট নির্বাচন করুন --</option>
+                {merchants.map((m) => (
+                  <option value={m.id}>
+                    {m.storeName} ({m.ownerName} - {m.phone})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800">
+              <p class="font-bold flex items-center gap-1.5">
+                <i class="fas fa-info-circle"></i> স্বয়ংক্রিয় রি-অ্যাসাইন:
+              </p>
+              <p class="mt-0.5 text-[11px] text-amber-700">
+                এই প্রোডাক্টের অতীতের যত অর্ডার সিস্টেমে আছে এবং ভবিষ্যতে যত নতুন অর্ডার আসবে—সবগুলো অটোমেটিক এই মার্চেন্টের অধীনে যুক্ত হবে।
+              </p>
+            </div>
+
+            <div class="pt-3 border-t flex justify-end gap-2">
+              <button
+                type="button"
+                onclick="document.getElementById('modal-bind-product').classList.add('hidden')"
+                class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50"
+              >
+                বাতিল
+              </button>
+              <button
+                type="submit"
+                id="btn-submit-bind"
+                class="px-5 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 shadow-sm"
+              >
+                প্রোডাক্ট লিঙ্ক ও অটো-অ্যাসাইন করুন
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
       {/* ADD MERCHANT MODAL */}
       <div id="modal-add-merchant" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
           <button
             type="button"
             id="btn-close-add-modal"
@@ -188,7 +292,7 @@ export const AdminMerchantsPage: FC = () => {
                   type="text"
                   name="storeName"
                   required
-                  placeholder="যেমন: Testo Care BD"
+                  placeholder="যেমন: Testo Health Care"
                   class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
                 />
               </div>
@@ -214,7 +318,6 @@ export const AdminMerchantsPage: FC = () => {
                   placeholder="017XXXXXXXX"
                   class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 font-mono"
                 />
-                <p class="text-[10px] text-gray-400 mt-0.5">মার্চেন্ট এই নম্বর দিয়ে লগইন করবেন</p>
               </div>
               <div>
                 <label class="block text-xs font-bold text-ok-charcoal mb-1">লগইন পাসওয়ার্ড (Password) *</label>
@@ -226,7 +329,6 @@ export const AdminMerchantsPage: FC = () => {
                   placeholder="পাসওয়ার্ড দিন"
                   class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 font-mono"
                 />
-                <p class="text-[10px] text-gray-400 mt-0.5">ডিফল্ট: 123456</p>
               </div>
             </div>
 
@@ -273,7 +375,7 @@ export const AdminMerchantsPage: FC = () => {
 
       {/* EDIT MERCHANT MODAL */}
       <div id="modal-edit-merchant" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
           <button
             type="button"
             id="btn-close-edit-modal"
@@ -383,6 +485,46 @@ export const AdminMerchantsPage: FC = () => {
 
       <script dangerouslySetInnerHTML={{
         __html: `
+          // Open Bind Modal
+          var bindBtn = document.getElementById('btn-open-bind-product-modal');
+          if (bindBtn) {
+            bindBtn.addEventListener('click', function() {
+              document.getElementById('modal-bind-product').classList.remove('hidden');
+            });
+          }
+
+          // Submit Bind Product Form
+          document.getElementById('form-bind-product').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = document.getElementById('btn-submit-bind');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ok-spinner"></span> বাইন্ড হচ্ছে...';
+
+            var productId = document.getElementById('bind-select-product').value;
+            var merchantId = document.getElementById('bind-select-merchant').value;
+
+            try {
+              var res = await fetch('/api/admin/products/bind', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: productId, merchantId: merchantId })
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert('সফলভাবে প্রোডাক্টটি এই মার্চেন্টের সাথে বাইন্ড করা হয়েছে এবং অতীতের ' + (data.reassignedOrders || 0) + ' টি অর্ডার অটো-অ্যাসাইন করা হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+                btn.disabled = false;
+                btn.innerHTML = 'প্রোডাক্ট লিঙ্ক ও অটো-অ্যাসাইন করুন';
+              }
+            } catch(err) {
+              alert('Error: ' + err.message);
+              btn.disabled = false;
+              btn.innerHTML = 'প্রোডাক্ট লিঙ্ক ও অটো-অ্যাসাইন করুন';
+            }
+          });
+
           // Open Add Modal
           document.getElementById('btn-open-add-merchant').addEventListener('click', function() {
             document.getElementById('modal-add-merchant').classList.remove('hidden');

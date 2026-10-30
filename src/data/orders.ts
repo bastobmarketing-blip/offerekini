@@ -5,17 +5,18 @@ import { products } from './products'
 import { computeOrderPayment } from '../utils/pricing'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'অর্ডার গ্রহণ করা হয়েছে',
+  pending: 'পেন্ডিং / নতুন অর্ডার',
+  called: 'কল দেওয়া হয়েছে (কনফার্মড)',
   accepted: 'Merchant অর্ডার গ্রহণ করেছে',
-  processing: 'প্যাক করা হচ্ছে',
+  processing: 'প্যাকিং চলছে',
   ready: 'ডেলিভারির জন্য প্রস্তুত',
-  shipped: 'কুরিয়ারে দেওয়া হয়েছে',
+  shipped: 'কুরিয়ারে দেওয়া হয়েছে (ইন-ট্রানজিট)',
   delivered: 'ডেলিভারি সম্পন্ন হয়েছে',
   cancelled: 'অর্ডার বাতিল হয়েছে',
   returned: 'পণ্য ফেরত দেওয়া হয়েছে'
 }
 
-const FULL_FLOW: OrderStatus[] = ['pending', 'accepted', 'processing', 'shipped', 'delivered']
+const FULL_FLOW: OrderStatus[] = ['pending', 'called', 'accepted', 'processing', 'shipped', 'delivered']
 
 export function buildTimeline(currentStatus: OrderStatus, baseDate: Date): OrderTimelineStep[] {
   if (currentStatus === 'cancelled' || currentStatus === 'returned') {
@@ -271,6 +272,28 @@ export function updateOrderMerchant(orderId: string, merchantId: string): Order 
   order.merchantId = merchantId
   saveCustomOrders()
   return order
+}
+
+export function rebindAllOrdersForProduct(productIdOrName: string, merchantId: string): number {
+  const query = productIdOrName.trim().toLowerCase()
+  let count = 0
+  for (const o of orders) {
+    const matches = o.items.some(
+      (item) =>
+        item.productId.toLowerCase() === query ||
+        item.productName.toLowerCase() === query ||
+        item.productName.toLowerCase().includes(query) ||
+        query.includes(item.productName.toLowerCase())
+    )
+    if (matches) {
+      o.merchantId = merchantId
+      count++
+    }
+  }
+  if (count > 0) {
+    saveCustomOrders()
+  }
+  return count
 }
 
 export function updateOrderCourier(orderId: string, info: { consignmentId?: string | number; trackingCode?: string; courierProvider?: string }): Order | null {
