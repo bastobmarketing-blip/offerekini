@@ -15,16 +15,16 @@ export const MerchantLoginPage: FC = () => (
         </div>
 
         <form id="merchant-login-form" class="bg-white rounded-2xl p-6 space-y-4 shadow-2xl">
-          <FormField label="ফোন নম্বর / ইমেইল" name="identifier" placeholder="01XXXXXXXXX বা email@example.com" required />
+          <FormField label="ফোন নম্বর / স্টোর নেম / আইডি" name="identifier" placeholder="01XXXXXXXXX বা testoking" required />
           <FormField label="পাসওয়ার্ড" name="password" type="password" placeholder="••••••••" required />
           <div class="flex justify-end">
             <a href="#" class="text-sm text-ok-green-800 font-semibold">পাসওয়ার্ড ভুলে গেছেন?</a>
           </div>
-          <button type="submit" id="merchant-login-btn" class="w-full bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold py-3 rounded-xl transition-colors">
-            লগইন করুন
+          <button type="submit" id="merchant-login-btn" class="w-full bg-ok-green-800 hover:bg-ok-green-900 text-white font-bold py-3 rounded-xl transition-colors cursor-pointer">
+            মার্চেন্ট লগইন করুন
           </button>
           <p class="text-xs text-ok-gray-400 text-center">
-            <i class="fas fa-circle-info mr-1"></i> অ্যাডমিন থেকে প্রাপ্ত মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন।
+            <i class="fas fa-circle-info mr-1"></i> আপনার মোবাইল নম্বর বা স্টোর নেম (যেমন testoking) এবং পাসওয়ার্ড দিন।
           </p>
         </form>
 

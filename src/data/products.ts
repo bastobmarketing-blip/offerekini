@@ -571,7 +571,7 @@ export const products: Product[] = [
     name: 'Testo King — 500g',
     nameEn: 'Testo King 500g',
     category: 'health-beauty',
-    merchantId: 'mer-1',
+    merchantId: 'mer-587277',
     image: '/testo_king/jar.webp',
     gallery: ['/testo_king/jar.webp'],
     referencePrice: 1290,

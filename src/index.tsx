@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 // ---- Data ----
 import { products, getProductBySlug, getProductsByCategory, searchProducts } from './data/products'
 import { getCategoryBySlug } from './data/categories'
-import { getOrderById, getOrdersByMerchant, orders, createOrder } from './data/orders'
+import { getOrderById, getOrdersByMerchant, orders, createOrder, deleteOrder } from './data/orders'
 import { getCustomerByPhone, customers } from './data/customers'
 import { merchants, getMerchantById, addMerchant, updateMerchant, deleteMerchant } from './data/merchants'
 import { getSettlementsByMerchant } from './data/settlements'
@@ -526,16 +526,37 @@ app.post('/api/merchant/login', async (c) => {
     const cleanId = (identifier || '').trim().toLowerCase()
     const cleanPhone = cleanId.replace(/[^0-9]/g, '')
 
-    // Find merchant matching phone, email, or id
-    const match = merchants.find(
-      (m) =>
-        m.id.toLowerCase() === cleanId ||
-        (m.email && m.email.toLowerCase() === cleanId) ||
-        (cleanPhone.length >= 6 && m.phone.replace(/[^0-9]/g, '').includes(cleanPhone))
-    )
+    // Find merchant matching store name, id, email, owner name, or full phone
+    const match = merchants.find((m) => {
+      const sId = (m.id || '').toLowerCase()
+      const sStore = (m.storeName || '').toLowerCase()
+      const sOwner = (m.ownerName || '').toLowerCase()
+      const sEmail = (m.email || '').toLowerCase()
+      const sPhone = (m.phone || '').replace(/[^0-9]/g, '')
+
+      // 1. Store name match (exact or spaces/hyphens removed)
+      if (sStore === cleanId) return true
+      if (sStore.replace(/[\s-_]/g, '') === cleanId.replace(/[\s-_]/g, '')) return true
+
+      // 2. Exact match by ID
+      if (sId === cleanId) return true
+
+      // 3. Exact match by Email
+      if (sEmail && sEmail === cleanId) return true
+
+      // 4. Exact match by Owner Name
+      if (sOwner && (sOwner === cleanId || sOwner.replace(/[\s-_]/g, '') === cleanId.replace(/[\s-_]/g, ''))) return true
+
+      // 5. Match by phone number (full phone or last 10-11 digits)
+      if (cleanPhone.length >= 10 && (sPhone === cleanPhone || sPhone.endsWith(cleanPhone) || cleanPhone.endsWith(sPhone))) {
+        return true
+      }
+
+      return false
+    })
 
     if (!match) {
-      return c.json({ success: false, error: 'মার্চেন্ট অ্যাকাউন্ট পাওয়া যায়নি। সঠিক ফোন নম্বর বা আইডি দিন।' }, 404)
+      return c.json({ success: false, error: 'মার্চেন্ট অ্যাকাউন্ট পাওয়া যায়নি। সঠিক ফোন নম্বর, স্টোর নেম বা আইডি দিন।' }, 404)
     }
 
     if (match.password && match.password !== password) {
@@ -572,35 +593,105 @@ app.get('/merchant/dashboard', (c) => {
 app.get('/merchant/products', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const merchantProducts = products.filter((p) => p.merchantId === merchantId)
-  return c.html(<MerchantProductsPage products={merchantProducts} />)
+  return c.html(<MerchantProductsPage products={merchantProducts} merchant={merchant} />)
 })
 app.get('/merchant/products/new', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
-  return c.html(<MerchantAddProductPage />)
+  const merchant = getMerchantById(merchantId)!
+  return c.html(<MerchantAddProductPage merchant={merchant} />)
 })
 app.get('/merchant/products/:id', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const product = products.find((p) => p.id === c.req.param('id') && p.merchantId === merchantId)
   if (!product) return c.notFound()
-  return c.html(<MerchantProductDetailPage product={product} />)
+  return c.html(<MerchantProductDetailPage product={product} merchant={merchant} />)
 })
 
 app.get('/merchant/orders', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const merchantOrders = getOrdersByMerchant(merchantId)
-  return c.html(<MerchantOrdersPage orders={merchantOrders} />)
+  const merchantProducts = products.filter((p) => p.merchantId === merchantId)
+  return c.html(<MerchantOrdersPage orders={merchantOrders} merchant={merchant} products={merchantProducts} />)
 })
 app.get('/merchant/orders/:id', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const order = getOrderById(c.req.param('id'))
   // Isolation: verify merchant owns this order
   if (!order || order.merchantId !== merchantId) return c.notFound()
-  return c.html(<MerchantOrderDetailPage order={order} />)
+  return c.html(<MerchantOrderDetailPage order={order} merchant={merchant} />)
+})
+
+// Merchant Manual Order Creation API
+app.post('/api/merchant/orders', async (c) => {
+  try {
+    const merchantId = getMerchantIdFromContext(c)
+    if (!merchantId) return c.json({ success: false, error: 'অননুমোদিত অ্যাক্সেস। অনুগ্রহ করে লগইন করুন।' }, 401)
+    const merchant = getMerchantById(merchantId)
+    if (!merchant) return c.json({ success: false, error: 'মার্চেন্ট পাওয়া যায়নি।' }, 404)
+
+    const body = await c.req.json()
+    const customerName = (body.customerName || '').trim()
+    const customerPhone = (body.customerPhone || '').trim()
+    const address = (body.address || '').trim()
+    const district = (body.district || 'ঢাকা').trim()
+    const productName = (body.productName || 'ম্যানুয়াল অর্ডার').trim()
+    const productId = body.productId || undefined
+    const quantity = Number(body.quantity) || 1
+    const price = Number(body.price) || 0
+    const delivery = Number(body.delivery ?? 0)
+    const advancePaid = Number(body.advancePaid) || 0
+    const status = body.status || 'pending'
+    const total = price + delivery
+
+    if (!customerName || !customerPhone || !address) {
+      return c.json({ success: false, error: 'গ্রাহকের নাম, মোবাইল নম্বর এবং ঠিকানা পূরণ করুন।' }, 400)
+    }
+
+    const order = createOrder({
+      customerName,
+      customerPhone,
+      address,
+      district,
+      productName,
+      productId,
+      merchantId: merchant.id,
+      quantity,
+      price,
+      delivery,
+      advancePaid,
+      status,
+      total
+    })
+
+    return c.json({ success: true, order, message: 'ম্যানুয়াল অর্ডার সফলভাবে তৈরি হয়েছে!' })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Merchant Delete Order API (only can delete orders belonging to this merchant)
+app.delete('/api/merchant/orders/:id', (c) => {
+  const merchantId = getMerchantIdFromContext(c)
+  if (!merchantId) return c.json({ success: false, error: 'অননুমোদিত অ্যাক্সেস। অনুগ্রহ করে লগইন করুন।' }, 401)
+  const orderId = c.req.param('id')
+  const order = getOrderById(orderId)
+  if (!order || order.merchantId !== merchantId) {
+    return c.json({ success: false, error: 'অর্ডার পাওয়া যায়নি অথবা এটি আপনার স্টোরের অর্ডার নয়।' }, 403)
+  }
+  const deleted = deleteOrder(orderId)
+  if (deleted) {
+    return c.json({ success: true, message: 'অর্ডারটি সফলভাবে ডিলিট করা হয়েছে।' })
+  }
+  return c.json({ success: false, error: 'অর্ডার ডিলিট করতে ব্যর্থ হয়েছে।' }, 500)
 })
 
 // Merchant Order Status Update API
@@ -656,15 +747,17 @@ app.post('/api/merchant/orders/:id/send-courier', async (c) => {
 app.get('/merchant/earnings', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const merchantOrders = getOrdersByMerchant(merchantId)
   const merchantSettlements = getSettlementsByMerchant(merchantId)
-  return c.html(<MerchantEarningsPage orders={merchantOrders} settlements={merchantSettlements} />)
+  return c.html(<MerchantEarningsPage orders={merchantOrders} settlements={merchantSettlements} merchant={merchant} />)
 })
 app.get('/merchant/settlements', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
+  const merchant = getMerchantById(merchantId)!
   const merchantSettlements = getSettlementsByMerchant(merchantId)
-  return c.html(<MerchantSettlementsPage settlements={merchantSettlements} />)
+  return c.html(<MerchantSettlementsPage settlements={merchantSettlements} merchant={merchant} />)
 })
 app.get('/merchant/store', (c) => {
   const merchantId = getMerchantIdFromContext(c)
@@ -681,7 +774,8 @@ app.get('/merchant/profile', (c) => {
 app.get('/merchant/settings', (c) => {
   const merchantId = getMerchantIdFromContext(c)
   if (!merchantId) return c.redirect('/merchant/login')
-  return c.html(<MerchantSettingsPage />)
+  const merchant = getMerchantById(merchantId)!
+  return c.html(<MerchantSettingsPage merchant={merchant} />)
 })
 
 // ==========================================================================
@@ -799,6 +893,62 @@ app.put('/api/admin/orders/:id/merchant', async (c) => {
       return c.json({ success: false, error: 'Order not found' }, 404)
     }
     return c.json({ success: true, order: updated })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Delete Order API
+app.delete('/api/admin/orders/:id', (c) => {
+  if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+  const orderId = c.req.param('id')
+  const deleted = deleteOrder(orderId)
+  if (deleted) {
+    return c.json({ success: true, message: 'অর্ডারটি সফলভাবে ডিলিট করা হয়েছে।' })
+  }
+  return c.json({ success: false, error: 'অর্ডার ডিলিট করতে ব্যর্থ হয়েছে।' }, 500)
+})
+
+// Admin Manual Order Creation API
+app.post('/api/admin/orders', async (c) => {
+  try {
+    if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+    const body = await c.req.json()
+    const customerName = (body.customerName || '').trim()
+    const customerPhone = (body.customerPhone || '').trim()
+    const address = (body.address || '').trim()
+    const district = (body.district || 'ঢাকা').trim()
+    const productName = (body.productName || 'ম্যানুয়াল অর্ডার').trim()
+    const productId = body.productId || undefined
+    const merchantId = body.merchantId || 'mer-587277'
+    const quantity = Number(body.quantity) || 1
+    const price = Number(body.price) || 0
+    const delivery = Number(body.delivery ?? 0)
+    const advancePaid = Number(body.advancePaid) || 0
+    const status = body.status || 'pending'
+    const total = price + delivery
+
+    if (!customerName || !customerPhone || !address) {
+      return c.json({ success: false, error: 'গ্রাহকের নাম, মোবাইল নম্বর এবং ঠিকানা পূরণ করুন।' }, 400)
+    }
+
+    const order = createOrder({
+      customerName,
+      customerPhone,
+      address,
+      district,
+      productName,
+      productId,
+      merchantId,
+      quantity,
+      price,
+      delivery,
+      advancePaid,
+      status,
+      total
+    })
+
+    return c.json({ success: true, order, message: 'ম্যানুয়াল অর্ডার সফলভাবে তৈরি হয়েছে!' })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }

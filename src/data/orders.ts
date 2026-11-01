@@ -143,6 +143,8 @@ export interface CreateOrderInput {
   quantity?: number
   price: number
   delivery: number
+  advancePaid?: number
+  status?: OrderStatus
   total: number
 }
 
@@ -180,10 +182,15 @@ export function createOrder(data: CreateOrderInput): Order {
     )
   }
 
-  const resolvedMerchantId = data.merchantId || matchedProduct?.merchantId || 'mer-1'
+  const resolvedMerchantId = data.merchantId || matchedProduct?.merchantId || 'mer-587277'
   const resolvedProductId = data.productId || matchedProduct?.id || 'p-testo-king'
   const resolvedProductName = data.productName || matchedProduct?.name || 'অফারকিনি প্রোডাক্ট'
   const resolvedProductImage = data.productImage || matchedProduct?.image || '/testo_king/jar.webp'
+  const advancePaid = Number(data.advancePaid) || 0
+  const total = Number(data.total) || (Number(data.price) + Number(data.delivery))
+  const dueOnDelivery = Math.max(0, total - advancePaid)
+  const orderStatus: OrderStatus = data.status || 'pending'
+  const paymentStatus: PaymentStatus = dueOnDelivery === 0 ? 'fully_paid' : (advancePaid > 0 ? 'advance_paid' : 'cod')
 
   const newOrder: Order = {
     id: orderId,
@@ -204,14 +211,14 @@ export function createOrder(data: CreateOrderInput): Order {
     ],
     productTotal: data.price,
     deliveryCharge: data.delivery,
-    advancePaid: 0,
-    dueOnDelivery: data.total,
-    totalAmount: data.total,
-    status: 'pending',
-    paymentStatus: 'cod',
+    advancePaid,
+    dueOnDelivery,
+    totalAmount: total,
+    status: orderStatus,
+    paymentStatus,
     createdAt: now.toISOString(),
     estimatedDelivery: new Date(now.getTime() + 3 * 86400_000).toISOString(),
-    timeline: buildTimeline('pending', now)
+    timeline: buildTimeline(orderStatus, now)
   }
 
   orders.unshift(newOrder)
@@ -309,4 +316,14 @@ export function updateOrderCourier(orderId: string, info: { consignmentId?: stri
 
   saveCustomOrders()
   return order
+}
+
+export function deleteOrder(orderId: string): boolean {
+  const index = orders.findIndex((o) => o.id.toLowerCase() === orderId.toLowerCase())
+  if (index !== -1) {
+    orders.splice(index, 1)
+    saveCustomOrders()
+    return true
+  }
+  return false
 }

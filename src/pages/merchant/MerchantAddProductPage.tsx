@@ -2,9 +2,10 @@ import type { FC } from 'hono/jsx'
 import { MerchantLayout } from '../../layouts/MerchantLayout'
 import { FormField } from '../../components/ui/FormField'
 import { categories } from '../../data/categories'
+import type { Merchant } from '../../types'
 
-export const MerchantAddProductPage: FC = () => (
-  <MerchantLayout title="Add Product" active="add-product">
+export const MerchantAddProductPage: FC<{ merchant?: Merchant }> = ({ merchant }) => (
+  <MerchantLayout title="Add Product" active="add-product" merchantName={merchant?.storeName}>
     <div class="max-w-3xl">
       <form id="add-product-form" class="space-y-6">
         <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6">

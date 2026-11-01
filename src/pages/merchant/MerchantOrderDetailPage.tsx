@@ -3,7 +3,7 @@ import { MerchantLayout } from '../../layouts/MerchantLayout'
 import { OrderTimeline } from '../../components/OrderTimeline'
 import { StatusBadge, orderStatusLabel, orderStatusTone } from '../../components/ui/StatusBadge'
 import { formatBDT, formatDateBn } from '../../utils/format'
-import type { Order } from '../../types'
+import type { Order, Merchant } from '../../types'
 
 const ACTION_MAP: Record<string, { label: string; next: string; tone: 'primary' | 'outline' }[]> = {
   pending: [
@@ -19,11 +19,11 @@ const ACTION_MAP: Record<string, { label: string; next: string; tone: 'primary' 
   returned: []
 }
 
-export const MerchantOrderDetailPage: FC<{ order: Order }> = ({ order }) => {
+export const MerchantOrderDetailPage: FC<{ order: Order; merchant?: Merchant }> = ({ order, merchant }) => {
   const actions = ACTION_MAP[order.status] || []
 
   return (
-    <MerchantLayout title={`Order ${order.id}`} active="orders">
+    <MerchantLayout title={`Order ${order.id}`} active="orders" merchantName={merchant?.storeName}>
       <div class="max-w-4xl">
         <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
           <div>

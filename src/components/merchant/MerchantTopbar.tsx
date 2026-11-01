@@ -7,31 +7,51 @@ interface MerchantTopbarProps {
   active: string
 }
 
-export const MerchantTopbar: FC<MerchantTopbarProps> = ({ title, merchantName = 'Dhaka Lifestyle Store', active }) => (
-  <header class="sticky top-0 z-30 bg-white border-b border-gray-100">
+export const MerchantTopbar: FC<MerchantTopbarProps> = ({ title, merchantName = 'মার্চেন্ট', active }) => (
+  <header class="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-2xs">
     <div class="flex items-center justify-between px-4 sm:px-6 py-3.5">
       <div class="flex items-center gap-3">
-        <button id="merchant-menu-btn" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100">
+        <button id="merchant-menu-btn" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-ok-charcoal">
           <i class="fas fa-bars text-lg"></i>
         </button>
-        <h1 class="font-bold text-base sm:text-lg">{title}</h1>
+        <h1 class="font-bold text-base sm:text-lg text-ok-charcoal">{title}</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="hidden sm:inline text-sm text-ok-gray-500">{merchantName}</span>
-        <div class="w-9 h-9 rounded-full bg-ok-green-800 text-white flex items-center justify-center font-bold text-sm">
-          {merchantName.charAt(0)}
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <span class="hidden sm:inline text-sm font-semibold text-ok-charcoal">{merchantName}</span>
+        <div class="w-9 h-9 rounded-full bg-ok-green-800 text-white flex items-center justify-center font-bold text-sm shadow-sm" title={merchantName}>
+          {merchantName ? merchantName.trim().charAt(0).toUpperCase() : 'M'}
         </div>
+        <a
+          href="/merchant/logout"
+          class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
+          title="মার্চেন্ট অ্যাকাউন্ট থেকে লগআউট করুন"
+        >
+          <i class="fas fa-sign-out-alt text-xs"></i>
+          <span class="hidden sm:inline">লগআউট</span>
+        </a>
       </div>
     </div>
 
     {/* Mobile drawer */}
     <div id="merchant-menu-overlay" class="hidden lg:hidden fixed inset-0 bg-black/40 z-40"></div>
-    <aside id="merchant-menu-drawer" class="hidden lg:hidden fixed top-0 left-0 h-full w-72 bg-ok-green-900 text-white z-40 flex-col overflow-y-auto">
+    <aside id="merchant-menu-drawer" class="hidden lg:hidden fixed top-0 left-0 h-full w-72 bg-ok-green-900 text-white z-40 flex flex-col overflow-y-auto">
       <div class="p-5 border-b border-white/10 flex items-center justify-between">
-        <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+        <div class="flex items-center gap-2">
+          <img src="/static/images/brand/offerkini-logo.png" alt="OfferKini" class="h-7" />
+          <span class="text-xs text-ok-lime-400 font-bold">MERCHANT</span>
+        </div>
         <button id="merchant-menu-close" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
           <i class="fas fa-xmark"></i>
         </button>
+      </div>
+      <div class="p-3 bg-white/5 mx-3 mt-3 rounded-xl flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-ok-lime-400 text-ok-green-900 flex items-center justify-center font-black text-xs">
+          {merchantName ? merchantName.trim().charAt(0).toUpperCase() : 'M'}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-bold text-white truncate">{merchantName}</p>
+          <p class="text-[10px] text-white/60">মার্চেন্ট প্যানেল</p>
+        </div>
       </div>
       <nav class="flex-1 p-3 space-y-1">
         {MERCHANT_NAV_ITEMS.map((item) => (
@@ -45,6 +65,14 @@ export const MerchantTopbar: FC<MerchantTopbarProps> = ({ title, merchantName = 
           </a>
         ))}
       </nav>
+      <div class="p-3 border-t border-white/10 mt-auto">
+        <a
+          href="/merchant/logout"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-rose-300 hover:bg-rose-950/40 hover:text-rose-200 transition-colors"
+        >
+          <i class="fas fa-sign-out-alt w-4"></i> লগআউট
+        </a>
+      </div>
     </aside>
 
     <script dangerouslySetInnerHTML={{

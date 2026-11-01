@@ -3,10 +3,10 @@ import { MerchantLayout } from '../../layouts/MerchantLayout'
 import { StatusBadge, productStatusLabel, productStatusTone } from '../../components/ui/StatusBadge'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { formatBDT } from '../../utils/format'
-import type { Product } from '../../types'
+import type { Product, Merchant } from '../../types'
 
-export const MerchantProductsPage: FC<{ products: Product[] }> = ({ products }) => (
-  <MerchantLayout title="Products" active="products">
+export const MerchantProductsPage: FC<{ products: Product[]; merchant?: Merchant }> = ({ products, merchant }) => (
+  <MerchantLayout title="Products" active="products" merchantName={merchant?.storeName}>
     <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
       <div class="relative flex-1 max-w-sm">
         <input type="text" placeholder="পণ্য খুঁজুন..." class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ok-lime-400" />

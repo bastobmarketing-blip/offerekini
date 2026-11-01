@@ -163,15 +163,25 @@ export const AdminOrdersPage: FC = () => {
                       )}
                     </td>
 
-                    <td class="p-4 text-right">
-                      <button
-                        type="button"
-                        onclick={`openAssignMerchantModal('${o.id}', '${o.customerName}', '${o.merchantId || "unassigned"}')`}
-                        class="bg-gray-100 hover:bg-ok-green-50 hover:text-ok-green-800 text-gray-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
-                        title="মার্চেন্ট অ্যাসাইন / পরিবর্তন করুন"
-                      >
-                        <i class="fas fa-store text-[11px]"></i> অ্যাসাইন
-                      </button>
+                    <td class="p-4 text-right whitespace-nowrap">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onclick={`openAssignMerchantModal('${o.id}', '${o.customerName}', '${o.merchantId || "unassigned"}')`}
+                          class="bg-gray-100 hover:bg-ok-green-50 hover:text-ok-green-800 text-gray-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="মার্চেন্ট অ্যাসাইন / পরিবর্তন করুন"
+                        >
+                          <i class="fas fa-store text-[11px]"></i> অ্যাসাইন
+                        </button>
+                        <button
+                          type="button"
+                          onclick={`deleteAdminOrder('${o.id}')`}
+                          class="bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                          title="অর্ডারটি স্থায়ীভাবে ডিলিট করুন"
+                        >
+                          <i class="fas fa-trash-alt text-[11px]"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -343,6 +353,27 @@ export const AdminOrdersPage: FC = () => {
               btn.innerHTML = 'সংরক্ষণ করুন';
             }
           });
+
+          // Delete Admin Order
+          window.deleteAdminOrder = async function(orderId) {
+            if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' স্থায়ীভাবে ডিলিট করতে চান? এই কাজটি আর পূর্বাবস্থায় ফেরানো যাবে না!')) {
+              return;
+            }
+            try {
+              var res = await fetch('/api/admin/orders/' + orderId, { method: 'DELETE' });
+              var data = await res.json();
+              if (data.success) {
+                alert('অর্ডারটি সফলভাবে ডিলিট করা হয়েছে!');
+                var row = document.getElementById('admin-order-row-' + orderId);
+                if (row) row.remove();
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+            }
+          };
         `
       }} />
     </AdminLayout>

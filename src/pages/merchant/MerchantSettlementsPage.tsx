@@ -3,12 +3,12 @@ import { MerchantLayout } from '../../layouts/MerchantLayout'
 import { StatusBadge, settlementStatusTone } from '../../components/ui/StatusBadge'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { formatBDT, formatDateShort } from '../../utils/format'
-import type { Settlement } from '../../types'
+import type { Settlement, Merchant } from '../../types'
 
 const STATUS_LABEL: Record<string, string> = { pending: 'Pending', approved: 'Approved', paid: 'Paid', disputed: 'Disputed' }
 
-export const MerchantSettlementsPage: FC<{ settlements: Settlement[] }> = ({ settlements }) => (
-  <MerchantLayout title="Settlements" active="settlements">
+export const MerchantSettlementsPage: FC<{ settlements: Settlement[]; merchant?: Merchant }> = ({ settlements, merchant }) => (
+  <MerchantLayout title="Settlements" active="settlements" merchantName={merchant?.storeName}>
     {settlements.length === 0 ? (
       <EmptyState icon="fa-file-invoice-dollar" title="কোনো সেটেলমেন্ট নেই" />
     ) : (

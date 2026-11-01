@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx'
 import { MerchantLayout } from '../../layouts/MerchantLayout'
+import type { Merchant } from '../../types'
 
 const TOGGLES = [
   { label: 'অর্ডার নোটিফিকেশন', desc: 'নতুন অর্ডার এলে নোটিফিকেশন পান', checked: true },
@@ -8,8 +9,8 @@ const TOGGLES = [
   { label: 'মার্কেটিং ইমেইল', desc: 'নতুন ফিচার ও অফার সম্পর্কে জানুন', checked: false }
 ]
 
-export const MerchantSettingsPage: FC = () => (
-  <MerchantLayout title="Settings" active="settings">
+export const MerchantSettingsPage: FC<{ merchant?: Merchant }> = ({ merchant }) => (
+  <MerchantLayout title="Settings" active="settings" merchantName={merchant?.storeName}>
     <div class="max-w-2xl space-y-6">
       <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6">
         <h3 class="font-bold text-base mb-4">নোটিফিকেশন সেটিংস</h3>

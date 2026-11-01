@@ -4,9 +4,9 @@ import { DataCard } from '../../components/ui/DataCard'
 import { ChartCard } from '../../components/ui/ChartCard'
 import { StatusBadge, settlementStatusTone } from '../../components/ui/StatusBadge'
 import { formatBDT, formatDateShort } from '../../utils/format'
-import type { Order, Settlement } from '../../types'
+import type { Order, Settlement, Merchant } from '../../types'
 
-export const MerchantEarningsPage: FC<{ orders: Order[]; settlements: Settlement[] }> = ({ orders, settlements }) => {
+export const MerchantEarningsPage: FC<{ orders: Order[]; settlements: Settlement[]; merchant?: Merchant }> = ({ orders, settlements, merchant }) => {
   const grossSales = orders.reduce((sum, o) => sum + o.totalAmount, 0)
   const deliveredSales = orders.filter((o) => o.status === 'delivered').reduce((sum, o) => sum + o.totalAmount, 0)
   const pendingSettlement = settlements.filter((s) => s.status === 'pending').reduce((sum, s) => sum + s.netAmount, 0)
@@ -18,7 +18,7 @@ export const MerchantEarningsPage: FC<{ orders: Order[]; settlements: Settlement
   const statusLabelMap: Record<string, string> = { pending: 'Pending', approved: 'Approved', paid: 'Paid', disputed: 'Disputed' }
 
   return (
-    <MerchantLayout title="Earnings" active="earnings">
+    <MerchantLayout title="Earnings" active="earnings" merchantName={merchant?.storeName}>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <DataCard label="Gross Sales" value={formatBDT(grossSales)} icon="fa-sack-dollar" tone="green" />
         <DataCard label="Delivered Sales" value={formatBDT(deliveredSales)} icon="fa-circle-check" tone="blue" />

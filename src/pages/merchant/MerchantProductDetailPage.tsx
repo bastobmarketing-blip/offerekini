@@ -5,10 +5,10 @@ import { StatusBadge, productStatusLabel, productStatusTone } from '../../compon
 import { ReviewProofManager } from '../../components/merchant/ReviewProofManager'
 import { categories } from '../../data/categories'
 import { formatBDT } from '../../utils/format'
-import type { Product } from '../../types'
+import type { Product, Merchant } from '../../types'
 
-export const MerchantProductDetailPage: FC<{ product: Product }> = ({ product }) => (
-  <MerchantLayout title="Edit Product" active="products">
+export const MerchantProductDetailPage: FC<{ product: Product; merchant?: Merchant }> = ({ product, merchant }) => (
+  <MerchantLayout title="Edit Product" active="products" merchantName={merchant?.storeName}>
     <div class="max-w-3xl">
       <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div class="flex items-center gap-3">
