@@ -15,7 +15,7 @@ const ENV_FILE = path.resolve(process.cwd(), '.env')
 const DEFAULT_SETTINGS: TrackingSettings = {
   pixelId: process.env.META_PIXEL_ID || '1416528586776042',
   accessToken: process.env.META_ACCESS_TOKEN || 'EAAEW7ngIMZB4BS7NAdnMZCoZBl0mlzINZA8Nd453lBZBsKxUBfRfQbaSbxhgQPcizooolKAys61yyzHfdhwl5ueJkpjyvHszVzHdbumUPbIocFFwS7dZAkN07VyXrDJDV4V0OMBgBZCZBCK69HPJfRApqgjYNiHKrYb77DpPZCr9pjwAvImGx5mLLMH2B3HwsAX60NQZDZD',
-  testEventCode: process.env.META_TEST_EVENT_CODE || 'TEST65269',
+  testEventCode: process.env.META_TEST_EVENT_CODE || '',
   enabled: true
 }
 
@@ -38,7 +38,7 @@ export function syncTrackingToEnv(settings: TrackingSettings): void {
 
     if (settings.pixelId) setOrReplace('META_PIXEL_ID', settings.pixelId)
     if (settings.accessToken) setOrReplace('META_ACCESS_TOKEN', settings.accessToken)
-    if (settings.testEventCode) setOrReplace('META_TEST_EVENT_CODE', settings.testEventCode)
+    setOrReplace('META_TEST_EVENT_CODE', settings.testEventCode || '')
 
     fs.writeFileSync(ENV_FILE, content, 'utf-8')
   } catch (e) {
@@ -54,7 +54,7 @@ export function getTrackingSettings(): TrackingSettings {
         return {
           pixelId: parsed.pixelId || DEFAULT_SETTINGS.pixelId,
           accessToken: parsed.accessToken || DEFAULT_SETTINGS.accessToken,
-          testEventCode: (parsed.testEventCode !== undefined && parsed.testEventCode !== '') ? parsed.testEventCode : DEFAULT_SETTINGS.testEventCode,
+          testEventCode: (parsed.testEventCode !== undefined && parsed.testEventCode !== null) ? parsed.testEventCode.trim() : (DEFAULT_SETTINGS.testEventCode || undefined),
           enabled: parsed.enabled ?? true
         }
       }
