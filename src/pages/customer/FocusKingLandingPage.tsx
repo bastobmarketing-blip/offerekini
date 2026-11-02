@@ -1178,19 +1178,7 @@ export const FocusKingLandingPage: FC = () => {
                   if (submitBtn) submitBtn.disabled = false;
                 });
               } else {
-                // Cash on Delivery
-                if (typeof fbq === 'function') {
-                  try {
-                    fbq('track', 'Purchase', {
-                      value: grandTotal,
-                      currency: 'BDT',
-                      content_name: 'Focus King — ' + pkgName,
-                      content_type: 'product'
-                    });
-                  } catch (e) {}
-                }
-
-                // Send order to server to record in database & trigger Server-Side Meta CAPI
+                // Cash on Delivery - Order is recorded as Pending on server (Purchase tracked only after Admin Confirmation)
                 fetch('/api/orders', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },

@@ -76,8 +76,12 @@ import { updateOrderStatus, updateOrderCourier, updateOrderMerchant, rebindAllOr
 import { getAllLandingPages, getLandingPageBySlug, getLandingPageForProduct, getLandingPageUrl, createLandingPage, deleteLandingPage } from './data/landingPages'
 import { sendOrderToSteadfast, getCourierSettings, saveCourierSettings } from './utils/courierService'
 import { sendMetaServerEvent, getTrackingSettings, saveTrackingSettings, renderPixelBaseScript } from './utils/tracking'
+import { enqueuePurchaseJob, dispatchPurchaseJob, skipPurchaseJob, retryMetaJob, getJobByOrderId, getAllMetaJobs, initMetaQueueWorker } from './services/metaTrackingService'
 
 const app = new Hono()
+
+// Start the background reliable Meta Purchase queue worker
+initMetaQueueWorker()
 
 // Demo "logged in" merchant for the prototype
 const DEMO_MERCHANT_ID = 'mer-1'
@@ -177,27 +181,6 @@ app.post('/api/orders', async (c) => {
       total: Number(total) || (Number(price) + Number(delivery))
     })
 
-    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
-    const userAgent = c.req.header('user-agent')
-    const fbp = getCookie(c, '_fbp') || body.fbp
-    const fbc = getCookie(c, '_fbc') || body.fbc
-
-    // Fire Server-Side Meta CAPI Purchase event (non-blocking)
-    sendMetaServerEvent({
-      eventName: 'Purchase',
-      orderId: order.id,
-      productName: order.items[0]?.productName || 'Order Item',
-      value: order.totalAmount,
-      currency: 'BDT',
-      phone: order.customerPhone,
-      name: order.customerName,
-      clientIp,
-      userAgent,
-      fbp,
-      fbc,
-      sourceUrl: c.req.url
-    }).catch((e) => console.error('CAPI trigger error:', e))
-
     return c.json({ success: true, orderId: order.id, order }, 200)
   } catch (err: any) {
     console.error('Order creation error:', err)
@@ -223,34 +206,13 @@ app.post('/api/testo_king/order', async (c) => {
       productName: product || matchedProduct?.name || 'Testo King',
       productId: 'p-testo-king',
       productImage: matchedProduct?.image || '/testo_king/jar.webp',
-      merchantId: matchedProduct?.merchantId || 'mer-1',
+      merchantId: matchedProduct?.merchantId || 'mer-587277',
       package: pkgId,
       quantity: pkgId === '2x' ? 2 : 1,
       price: Number(price) || (pkgId === '2x' ? 1490 : 990),
       delivery: Number(delivery) || 0,
       total: Number(total) || (Number(price) + Number(delivery))
     })
-
-    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
-    const userAgent = c.req.header('user-agent')
-    const fbp = getCookie(c, '_fbp') || body.fbp
-    const fbc = getCookie(c, '_fbc') || body.fbc
-
-    // Fire Server-Side Meta CAPI Purchase event (non-blocking)
-    sendMetaServerEvent({
-      eventName: 'Purchase',
-      orderId: order.id,
-      productName: order.items[0]?.productName || 'Order Item',
-      value: order.totalAmount,
-      currency: 'BDT',
-      phone: order.customerPhone,
-      name: order.customerName,
-      clientIp,
-      userAgent,
-      fbp,
-      fbc,
-      sourceUrl: c.req.url
-    }).catch((e) => console.error('CAPI trigger error:', e))
 
     return c.json({ success: true, orderId: order.id, order }, 200)
   } catch (err: any) {
@@ -954,6 +916,112 @@ app.post('/api/admin/orders', async (c) => {
   }
 })
 
+// ==========================================================================
+// AUTHORITATIVE ADMIN ORDER CONFIRMATION & META TRACKING APIS
+// ==========================================================================
+// Admin Confirm Order API: Authoritative trigger for Meta Purchase event
+app.post('/api/admin/orders/:id/confirm', async (c) => {
+  try {
+    if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+    const orderId = c.req.param('id')
+    const order = getOrderById(orderId)
+    if (!order) {
+      return c.json({ success: false, error: 'অর্ডারটি পাওয়া যায়নি' }, 404)
+    }
+
+    // Check if Meta event was already sent for this order
+    const existingJob = getJobByOrderId(orderId)
+    if (existingJob && existingJob.status === 'sent') {
+      updateOrderStatus(orderId, 'called')
+      return c.json({
+        success: true,
+        alreadySent: true,
+        message: 'অর্ডারটি ইতিমধ্যে কনফার্মড এবং মেটাতে পার্চেস সফলভাবে পাঠানো হয়েছে (ডুপ্লিকেট রোধ করা হয়েছে)।',
+        job: existingJob
+      })
+    }
+
+    // Update order status to called (confirmed)
+    const updatedOrder = updateOrderStatus(orderId, 'called')
+
+    // Enqueue single Meta Purchase Job (Strictly Idempotent)
+    const { job } = enqueuePurchaseJob(order, 'admin')
+
+    // Immediately dispatch the Meta CAPI Purchase event
+    const dispatchRes = await dispatchPurchaseJob(job.id)
+
+    return c.json({
+      success: true,
+      message: dispatchRes.success
+        ? `অর্ডার #${order.id} কনফার্ম হয়েছে এবং Meta CAPI-তে ১টি Purchase ইভেন্ট সফলভাবে পাঠানো হয়েছে! (Trace: ${dispatchRes.job?.fbtraceId || 'OK'})`
+        : `অর্ডার কনফার্ম হয়েছে, তবে Meta CAPI সাময়িক ব্যর্থ হয়েছে: ${dispatchRes.error || 'Pending retry'}. ব্যাকগ্রাউন্ড ওয়ার্কার পুনরায় চেষ্টা করবে।`,
+      order: updatedOrder,
+      job: dispatchRes.job
+    })
+  } catch (err: any) {
+    console.error('Order confirm error:', err)
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Mark as Duplicate API
+app.post('/api/admin/orders/:id/duplicate', async (c) => {
+  try {
+    if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+    const orderId = c.req.param('id')
+    const order = getOrderById(orderId)
+    if (!order) return c.json({ success: false, error: 'অর্ডার পাওয়া যায়নি' }, 404)
+
+    updateOrderStatus(orderId, 'cancelled')
+    skipPurchaseJob(orderId, 'Marked as duplicate by administrator')
+
+    return c.json({
+      success: true,
+      message: `অর্ডার #${orderId} ডুপ্লিকেট হিসেবে চিহ্নিত করা হয়েছে এবং মেটা ট্র্যাকিং ব্লক করা হয়েছে।`
+    })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Reject / Cancel Order API
+app.post('/api/admin/orders/:id/reject', async (c) => {
+  try {
+    if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+    const orderId = c.req.param('id')
+    const order = getOrderById(orderId)
+    if (!order) return c.json({ success: false, error: 'অর্ডার পাওয়া যায়নি' }, 404)
+
+    updateOrderStatus(orderId, 'cancelled')
+    skipPurchaseJob(orderId, 'Rejected by administrator')
+
+    return c.json({
+      success: true,
+      message: `অর্ডার #${orderId} বাতিল করা হয়েছে এবং মেটা পার্চেস বাদ দেওয়া হয়েছে।`
+    })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Manual Retry for Meta Purchase Job
+app.post('/api/admin/tracking/jobs/:orderId/retry', async (c) => {
+  try {
+    if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+    const orderId = c.req.param('orderId')
+    const res = await retryMetaJob(orderId)
+    return c.json(res)
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin List All Meta Tracking Jobs
+app.get('/api/admin/tracking/jobs', (c) => {
+  if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+  return c.json({ success: true, jobs: getAllMetaJobs() })
+})
+
 // Admin Product-Merchant Binding & Retroactive Reassign API
 app.post('/api/admin/products/bind', async (c) => {
   try {
@@ -1149,33 +1217,9 @@ app.post('/api/tracking/pageview', async (c) => {
   }
 })
 
-// Server-side Purchase Tracking trigger (CAPI)
+// Server-side Purchase Tracking trigger (CAPI) - Deprecated for unverified client calls
 app.post('/api/tracking/purchase', async (c) => {
-  try {
-    const body = await c.req.json()
-    const clientIp = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip')
-    const userAgent = c.req.header('user-agent')
-    const fbp = getCookie(c, '_fbp') || body.fbp
-    const fbc = getCookie(c, '_fbc') || body.fbc
-
-    const ok = await sendMetaServerEvent({
-      eventName: 'Purchase',
-      orderId: body.orderId,
-      productName: body.productName,
-      value: Number(body.value) || 0,
-      currency: body.currency || 'BDT',
-      phone: body.phone,
-      name: body.name,
-      clientIp,
-      userAgent,
-      fbp,
-      fbc,
-      sourceUrl: body.sourceUrl || c.req.url
-    })
-    return c.json({ success: ok })
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500)
-  }
+  return c.json({ success: true, message: 'Unverified client purchase disabled. Purchases are tracked only upon Admin Confirmation.' })
 })
 
 // Admin Settings APIs (Pixel & Courier)

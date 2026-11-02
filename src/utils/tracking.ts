@@ -109,6 +109,7 @@ export function renderPixelBaseScript(): string {
 export interface MetaCapiEventParams {
   eventName: 'Purchase' | 'InitiateCheckout' | 'AddToCart' | 'Lead' | 'ViewContent' | 'PageView'
   orderId?: string
+  eventId?: string
   productName?: string
   value?: number
   currency?: string
@@ -121,43 +122,59 @@ export interface MetaCapiEventParams {
   fbc?: string
 }
 
-export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<boolean> {
+export interface MetaCapiResult {
+  success: boolean
+  eventsReceived: number
+  fbtraceId?: string
+  error?: string
+  rawResponse?: any
+}
+
+export async function sendMetaServerEventDetailed(params: MetaCapiEventParams): Promise<MetaCapiResult> {
   const settings = getTrackingSettings()
   if (!settings.enabled || !settings.pixelId || !settings.accessToken) {
-    return false
+    return { success: false, eventsReceived: 0, error: 'Tracking disabled or missing credentials' }
   }
 
   try {
     const cleanPhone = (params.phone || '').replace(/[^0-9]/g, '')
-    // Format Bangladesh number to +8801...
+    // Format Bangladesh number to 8801...
     let formattedPhone = cleanPhone
     if (formattedPhone.startsWith('01')) formattedPhone = '88' + formattedPhone
+    else if (formattedPhone.startsWith('8801')) { /* already standard */ }
+    else if (formattedPhone.startsWith('+8801')) formattedPhone = formattedPhone.replace('+', '')
 
     const eventTime = Math.floor(Date.now() / 1000)
+    const eventId = params.eventId || (params.orderId ? `offerkini_purchase_${params.orderId}` : undefined)
+
+    const eventData: any = {
+      event_name: params.eventName,
+      event_time: eventTime,
+      action_source: 'website',
+      event_source_url: params.sourceUrl || 'https://offerekini.com',
+      user_data: {
+        ph: formattedPhone ? [hashSha256(formattedPhone)] : [],
+        fn: params.name ? [hashSha256(params.name.trim().split(' ')[0])] : [],
+        client_ip_address: params.clientIp || undefined,
+        client_user_agent: params.userAgent || undefined,
+        fbp: params.fbp || undefined,
+        fbc: params.fbc || undefined
+      },
+      custom_data: {
+        currency: params.currency || 'BDT',
+        value: params.value || 0,
+        order_id: params.orderId || undefined,
+        content_name: params.productName || undefined
+      }
+    }
+
+    // Critical: Stable Event ID for 100% Meta deduplication and single-event enforcement
+    if (eventId) {
+      eventData.event_id = eventId
+    }
 
     const payload: any = {
-      data: [
-        {
-          event_name: params.eventName,
-          event_time: eventTime,
-          action_source: 'website',
-          event_source_url: params.sourceUrl || 'https://offerekini.com',
-          user_data: {
-            ph: formattedPhone ? [hashSha256(formattedPhone)] : [],
-            fn: params.name ? [hashSha256(params.name.split(' ')[0])] : [],
-            client_ip_address: params.clientIp || undefined,
-            client_user_agent: params.userAgent || undefined,
-            fbp: params.fbp || undefined,
-            fbc: params.fbc || undefined
-          },
-          custom_data: {
-            currency: params.currency || 'BDT',
-            value: params.value || 0,
-            order_id: params.orderId || undefined,
-            content_name: params.productName || undefined
-          }
-        }
-      ]
+      data: [eventData]
     }
 
     if (settings.testEventCode) {
@@ -171,10 +188,30 @@ export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<
     })
 
     const resData: any = await response.json()
-    console.log(`[Meta CAPI] Event: ${params.eventName}, Status: ${response.status}, Received: ${resData.events_received}, Trace: ${resData.fbtrace_id}`, resData.messages || '')
-    return response.ok && resData.events_received > 0
-  } catch (err) {
+    const eventsReceived = Number(resData?.events_received) || 0
+    const fbtraceId = resData?.fbtrace_id
+    const success = response.ok && eventsReceived > 0
+
+    console.log(`[Meta CAPI] Event: ${params.eventName}, ID: ${eventId || 'none'}, Status: ${response.status}, Received: ${eventsReceived}, Trace: ${fbtraceId}`, resData.messages || '')
+
+    return {
+      success,
+      eventsReceived,
+      fbtraceId,
+      error: success ? undefined : (resData?.error?.message || JSON.stringify(resData)),
+      rawResponse: resData
+    }
+  } catch (err: any) {
     console.error('Meta CAPI Error:', err)
-    return false
+    return {
+      success: false,
+      eventsReceived: 0,
+      error: err.message
+    }
   }
+}
+
+export async function sendMetaServerEvent(params: MetaCapiEventParams): Promise<boolean> {
+  const result = await sendMetaServerEventDetailed(params)
+  return result.success
 }

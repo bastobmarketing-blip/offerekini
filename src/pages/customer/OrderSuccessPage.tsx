@@ -107,41 +107,6 @@ export const OrderSuccessPage: FC = () => (
         document.getElementById('order-success-delivery-info').innerHTML =
           '<p><span class="text-ok-charcoal font-medium">' + order.customerName + '</span> — ' + order.customerPhone + '</p>' +
           '<p>' + (order.address || '') + ', ' + (order.area || '') + ', ' + (order.district || '') + '</p>';
-
-        if (!window._fbq_purchase_tracked) {
-          window._fbq_purchase_tracked = true;
-          var totalVal = (order.totalAmount || (advanceAmt + dueAmt) || 0);
-          var prodName = (order.items && order.items[0] && order.items[0].productName) || 'Order Purchase';
-
-          // Client-side Browser Meta Pixel
-          if (typeof fbq === 'function') {
-            try {
-              fbq('track', 'Purchase', {
-                value: totalVal,
-                currency: 'BDT',
-                content_name: prodName,
-                content_type: 'product'
-              });
-            } catch (e) {}
-          }
-
-          // Server-side Backup CAPI trigger
-          try {
-            fetch('/api/tracking/purchase', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: order.id,
-                productName: prodName,
-                value: totalVal,
-                currency: 'BDT',
-                phone: order.customerPhone,
-                name: order.customerName,
-                sourceUrl: window.location.href
-              })
-            }).catch(function() {});
-          } catch(e) {}
-        }
       })();
       `
     }} />

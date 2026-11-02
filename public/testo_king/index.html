@@ -1031,18 +1031,16 @@ $("#orderForm").addEventListener("submit", async e => {
         existing.unshift(resData.order);
         localStorage.setItem('offerkini_orders', JSON.stringify(existing));
       }
-      if (typeof fbq === 'function') {
-        fbq('track', 'Purchase', {
-          value: data.total,
-          currency: 'BDT',
-          content_name: data.product,
-          content_type: 'product'
-        });
-      }
     } catch(err){}
-    f.reset(); $$("input[name=package]").forEach(r => r.checked = r.value === CONFIG.defaultPackage); calc(); say("ok", "ধন্যবাদ! আপনার অর্ডার পেয়েছি। শীঘ্রই কল করে নিশ্চিত করা হবে।");
+    f.reset(); $$("input[name=package]").forEach(r => r.checked = r.value === CONFIG.defaultPackage); calc();
+    say("ok", "ধন্যবাদ! আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমাদের প্রতিনিধি শীঘ্রই আপনাকে কল করে অর্ডারটি নিশ্চিত করবেন।");
+    // Prevent immediate re-submission
+    btn.disabled = true;
+    btn.innerHTML = "✓ অর্ডার সম্পন্ন হয়েছে";
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 30000);
+    return;
   } catch { say("err", "অর্ডার পাঠানো যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।"); }
-  finally { btn.disabled = false; btn.innerHTML = label; }
+  finally { if (btn.innerHTML !== "✓ অর্ডার সম্পন্ন হয়েছে") { btn.disabled = false; btn.innerHTML = label; } }
 });
 
 /* Sticky CTA: shows after the hero button scrolls away, hides at the order form */
