@@ -95,8 +95,30 @@ export function renderPixelBaseScript(): string {
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
+      // Crucial: Disable automatic button-click heuristics and auto-scraping to prevent unauthorized Purchase overcounting
+      fbq('set', 'autoConfig', false, '${settings.pixelId}');
       fbq('init', '${settings.pixelId}');
       fbq('track', 'PageView');
+
+      // OfferKini Authoritative Tracking Guard:
+      // Drop any browser-initiated Purchase event (from auto-trackers, Event Setup Tool, or extensions)
+      (function() {
+        var origFbq = window.fbq;
+        if (!origFbq) return;
+        window.fbq = function() {
+          var args = Array.prototype.slice.call(arguments);
+          if (args[0] === 'track' && args[1] === 'Purchase') {
+            console.warn('[OfferKini Tracking Guard] Client-side Purchase blocked. Purchase is strictly tracked via Server CAPI upon Admin Confirmation.');
+            return;
+          }
+          return origFbq.apply(window, args);
+        };
+        for (var key in origFbq) {
+          if (origFbq.hasOwnProperty(key)) {
+            window.fbq[key] = origFbq[key];
+          }
+        }
+      })();
     </script>
     <noscript>
       <img height="1" width="1" style="display:none"

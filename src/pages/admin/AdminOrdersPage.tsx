@@ -37,8 +37,16 @@ export const AdminOrdersPage: FC = () => {
           </p>
         </div>
 
-        {/* FILTERS */}
+        {/* ACTIONS & FILTERS */}
         <div class="flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            id="btn-open-create-order"
+            class="bg-ok-green-800 hover:bg-ok-green-900 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+          >
+            <i class="fas fa-plus-circle"></i> নতুন অর্ডার যোগ করুন
+          </button>
+
           {/* DATE FILTER */}
           <div class="flex items-center gap-1.5">
             <label class="text-xs font-bold text-ok-charcoal">তারিখ:</label>
@@ -107,6 +115,7 @@ export const AdminOrdersPage: FC = () => {
                   <tr
                     class={`hover:bg-gray-50/60 transition-colors order-row ${dupInfo?.isDuplicateSuspect ? 'bg-amber-50/20' : ''}`}
                     data-order-id={o.id}
+                    data-customer-name={o.customerName}
                     data-merchant-id={o.merchantId || 'unassigned'}
                     data-date-ymd={dateYMD}
                     id={`order-row-${o.id}`}
@@ -128,25 +137,24 @@ export const AdminOrdersPage: FC = () => {
                           📦 {o.items.map((it) => `${it.productName} (x${it.quantity})`).join(', ')}
                         </p>
                       )}
-                      {dupInfo && dupInfo.isDuplicateSuspect && (
-                        <div class="mt-1.5">
-                          <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1 shadow-2xs" title={dupInfo.reason}>
-                            <i class="fas fa-triangle-exclamation text-amber-600"></i> {dupInfo.reason}
-                          </span>
+                      {dupInfo?.isDuplicateSuspect && (
+                        <div class="mt-1.5 flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300">
+                          <i class="fas fa-triangle-exclamation text-amber-600"></i>
+                          <span>{dupInfo.suspectReason}</span>
                         </div>
                       )}
                     </td>
 
-                    <td class="p-4" id={`merchant-cell-${o.id}`}>
+                    <td class="p-4">
                       {merchant ? (
                         <div class="space-y-1">
-                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            🏪 {merchant.storeName}
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-ok-green-50 text-ok-green-900 border border-ok-green-100">
+                            <i class="fas fa-store text-ok-green-600 text-[10px]"></i> {merchant.storeName}
                           </span>
-                          <p class="text-[10px] text-gray-400 font-mono">{merchant.phone}</p>
+                          <p class="text-[11px] text-ok-gray-400 font-mono">{merchant.phone}</p>
                           <button
                             type="button"
-                            onclick={`openAssignMerchantModal('${o.id}', '${o.customerName}', '${merchant.id}')`}
+                            onclick={`openAssignMerchantModal('${o.id}')`}
                             class="text-[11px] font-bold text-ok-green-800 hover:underline block cursor-pointer"
                           >
                             <i class="fas fa-arrows-rotate text-[10px] mr-1"></i>মার্চেন্ট পরিবর্তন
@@ -159,7 +167,7 @@ export const AdminOrdersPage: FC = () => {
                           </span>
                           <button
                             type="button"
-                            onclick={`openAssignMerchantModal('${o.id}', '${o.customerName}', 'unassigned')`}
+                            onclick={`openAssignMerchantModal('${o.id}')`}
                             class="text-xs font-bold text-blue-600 hover:underline block cursor-pointer"
                           >
                             + মার্চেন্ট নির্ধারণ করুন
@@ -252,7 +260,7 @@ export const AdminOrdersPage: FC = () => {
 
                         <button
                           type="button"
-                          onclick={`openAssignMerchantModal('${o.id}', '${o.customerName}', '${o.merchantId || "unassigned"}')`}
+                          onclick={`openAssignMerchantModal('${o.id}')`}
                           class="bg-gray-100 hover:bg-ok-green-50 hover:text-ok-green-800 text-gray-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                           title="মার্চেন্ট অ্যাসাইন / পরিবর্তন করুন"
                         >
@@ -276,13 +284,225 @@ export const AdminOrdersPage: FC = () => {
         </div>
       </div>
 
+      {/* CREATE MANUAL ORDER MODAL */}
+      <div id="modal-create-order" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+          <button
+            type="button"
+            id="btn-close-create-order-modal"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+          >
+            ✕
+          </button>
+          <div class="mb-4">
+            <h3 class="text-base font-bold text-ok-charcoal flex items-center gap-2">
+              <i class="fas fa-plus-circle text-ok-green-800"></i> নতুন ম্যানুয়াল অর্ডার তৈরি করুন
+            </h3>
+            <p class="text-xs text-ok-gray-500 mt-1">
+              গ্রাহকের তথ্য, পণ্য এবং মার্চেন্ট নির্বাচন করে সরাসরি সিস্টেমে অর্ডার যোগ করুন
+            </p>
+          </div>
+
+          <form id="form-admin-create-order" class="space-y-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">গ্রাহকের নাম *</label>
+                <input
+                  type="text"
+                  name="customerName"
+                  required
+                  placeholder="যেমন: তানভীর আহমেদ"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">মোবাইল নম্বর *</label>
+                <input
+                  type="tel"
+                  name="customerPhone"
+                  required
+                  placeholder="01XXXXXXXXX"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-ok-charcoal mb-1">সম্পূর্ণ ঠিকানা *</label>
+              <textarea
+                name="address"
+                required
+                rows={2}
+                placeholder="বাসা/রোড, এলাকা, থানা, জেলা"
+                class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">জেলা</label>
+                <select
+                  name="district"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                >
+                  <option value="ঢাকা" selected>ঢাকা (Dhaka)</option>
+                  <option value="চট্টগ্রাম">চট্টগ্রাম (Chittagong)</option>
+                  <option value="সিলেট">সিলেট (Sylhet)</option>
+                  <option value="রাজশাহী">রাজশাহী (Rajshahi)</option>
+                  <option value="খুলনা">খুলনা (Khulna)</option>
+                  <option value="বরিশাল">বরিশাল (Barisal)</option>
+                  <option value="রংপুর">রংপুর (Rangpur)</option>
+                  <option value="ময়মনসিংহ">ময়মনসিংহ (Mymensingh)</option>
+                  <option value="কুমিল্লা">কুমিল্লা (Cumilla)</option>
+                  <option value="গাজীপুর">গাজীপুর (Gazipur)</option>
+                  <option value="নারায়ণগঞ্জ">নারায়ণগঞ্জ (Narayanganj)</option>
+                  <option value="বগুড়া">বগুড়া (Bogura)</option>
+                  <option value="অন্যান্য">অন্যান্য জেলা</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">অর্ডার স্ট্যাটাস</label>
+                <select
+                  name="status"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 font-medium"
+                >
+                  <option value="pending" selected>⏳ পেন্ডিং / নতুন অর্ডার</option>
+                  <option value="called">📞 কল দেওয়া হয়েছে</option>
+                  <option value="confirmed">✅ কনফার্মড</option>
+                  <option value="processing">📦 প্যাকিং চলছে</option>
+                  <option value="ready">🚚 প্রস্তুত</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-3">
+              <label class="block text-xs font-bold text-ok-charcoal mb-1">প্রোডাক্ট নির্বাচন *</label>
+              <select
+                id="admin-select-product"
+                name="productId"
+                class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 mb-2"
+              >
+                <option value="p-testo-king" data-name="Testo King — 500g" data-price="990">Testo King — 500g (৳৯৯০)</option>
+                <option value="p-testo-king-2x" data-name="Testo King ২ট জার (১০০০ গ্রাম)" data-price="1490">Testo King ২ট জার — ১০০০ গ্রাম (৳১,৪৯০)</option>
+                <option value="p-focus-king" data-name="Focus King — 500g" data-price="890">Focus King — 500g (৳৮৯০)</option>
+                <option value="custom" data-name="" data-price="">✍️ কাস্টম প্রোডাক্ট (অন্যান্য)</option>
+              </select>
+              <div id="admin-custom-product-wrapper" class="hidden space-y-2 mt-2">
+                <input
+                  type="text"
+                  id="admin-custom-product-name"
+                  name="customProductName"
+                  placeholder="প্রোডাক্টের নাম লিখুন"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">পরিমাণ</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  id="admin-input-quantity"
+                  min="1"
+                  value="1"
+                  required
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">পণ্যের দাম (৳)</label>
+                <input
+                  type="number"
+                  name="price"
+                  id="admin-input-price"
+                  value="990"
+                  required
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">ডেলিভারি (৳)</label>
+                <input
+                  type="number"
+                  name="delivery"
+                  id="admin-input-delivery"
+                  value="0"
+                  required
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-gray-400">কুইক ডেলিভারি:</span>
+              <button type="button" id="btn-admin-del-free" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 cursor-pointer">ফ্রি (৳০)</button>
+              <button type="button" id="btn-admin-del-dhaka" class="px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 cursor-pointer">ঢাকা (৳৬০)</button>
+              <button type="button" id="btn-admin-del-outside" class="px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 cursor-pointer">ঢাকার বাইরে (৳১২০)</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">অগ্রিম গ্রহণ (৳)</label>
+                <input
+                  type="number"
+                  name="advancePaid"
+                  id="admin-input-advance"
+                  value="0"
+                  min="0"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-ok-charcoal mb-1">মার্চেন্ট নির্ধারণ *</label>
+                <select
+                  name="merchantId"
+                  id="admin-create-merchant-select"
+                  class="w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700"
+                >
+                  {merchants.map((m) => (
+                    <option value={m.id} selected={m.id === 'mer-587277' || m.id === 'testoking'}>
+                      {m.storeName} ({m.phone})
+                    </option>
+                  ))}
+                  <option value="unassigned">⚠️ কোনো মার্চেন্ট নেই (Unassigned)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="p-3 bg-gray-50 rounded-xl flex items-center justify-between text-xs font-bold">
+              <span class="text-ok-gray-500">গ্রাহক থেকে সর্বমোট প্রদেয়:</span>
+              <span id="admin-create-order-total-display" class="text-base text-ok-green-800 font-mono">৳৯৯০</span>
+            </div>
+
+            <div class="pt-3 border-t flex justify-end gap-2">
+              <button
+                type="button"
+                id="btn-cancel-create-order-modal"
+                class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 cursor-pointer"
+              >
+                বাতিল
+              </button>
+              <button
+                type="submit"
+                id="btn-submit-create-order"
+                class="px-5 py-2 bg-ok-green-800 text-white rounded-xl text-xs font-bold hover:bg-ok-green-900 shadow-sm cursor-pointer"
+              >
+                অর্ডার তৈরি করুন
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       {/* ASSIGN / REASSIGN MERCHANT MODAL */}
       <div id="modal-assign-merchant" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
           <button
             type="button"
             id="btn-close-assign-modal"
-            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
           >
             ✕
           </button>
@@ -320,14 +540,14 @@ export const AdminOrdersPage: FC = () => {
               <button
                 type="button"
                 id="btn-cancel-assign-modal"
-                class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50"
+                class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 cursor-pointer"
               >
                 বাতিল
               </button>
               <button
                 type="submit"
                 id="btn-submit-assign"
-                class="px-5 py-2 bg-ok-green-800 text-white rounded-xl text-xs font-bold hover:bg-ok-green-900 shadow-sm"
+                class="px-5 py-2 bg-ok-green-800 text-white rounded-xl text-xs font-bold hover:bg-ok-green-900 shadow-sm cursor-pointer"
               >
                 সংরক্ষণ করুন
               </button>
@@ -338,7 +558,9 @@ export const AdminOrdersPage: FC = () => {
 
       <script dangerouslySetInnerHTML={{
         __html: `
-          // Filter Logic
+          // -------------------------------------------------------------
+          // 1. FILTER LOGIC
+          // -------------------------------------------------------------
           function applyFilters() {
             var selectedMerchant = document.getElementById('filter-merchant-select').value;
             var dateOption = document.getElementById('filter-date-select').value;
@@ -390,11 +612,17 @@ export const AdminOrdersPage: FC = () => {
           });
           document.getElementById('filter-custom-date').addEventListener('change', applyFilters);
 
-          // Assign Modal
+          // -------------------------------------------------------------
+          // 2. ASSIGN MERCHANT MODAL
+          // -------------------------------------------------------------
           var assignModal = document.getElementById('modal-assign-merchant');
-          window.openAssignMerchantModal = function(orderId, custName, currentMerchantId) {
+          window.openAssignMerchantModal = function(orderId) {
+            var row = document.getElementById('order-row-' + orderId);
+            var custName = row ? row.getAttribute('data-customer-name') : '';
+            var currentMerchantId = row ? row.getAttribute('data-merchant-id') : 'unassigned';
+
             document.getElementById('assign-order-id').textContent = orderId;
-            document.getElementById('assign-cust-name').textContent = custName;
+            document.getElementById('assign-cust-name').textContent = custName || '';
             document.getElementById('assign-input-order-id').value = orderId;
             document.getElementById('assign-select-merchant').value = currentMerchantId || 'unassigned';
             assignModal.classList.remove('hidden');
@@ -407,7 +635,6 @@ export const AdminOrdersPage: FC = () => {
             assignModal.classList.add('hidden');
           });
 
-          // Submit Assign Merchant
           document.getElementById('form-assign-merchant').addEventListener('submit', async function(e) {
             e.preventDefault();
             var btn = document.getElementById('btn-submit-assign');
@@ -439,7 +666,113 @@ export const AdminOrdersPage: FC = () => {
             }
           });
 
-          // Delete Admin Order
+          // -------------------------------------------------------------
+          // 3. CREATE MANUAL ORDER MODAL
+          // -------------------------------------------------------------
+          var createOrderModal = document.getElementById('modal-create-order');
+          document.getElementById('btn-open-create-order').addEventListener('click', function() {
+            createOrderModal.classList.remove('hidden');
+          });
+          document.getElementById('btn-close-create-order-modal').addEventListener('click', function() {
+            createOrderModal.classList.add('hidden');
+          });
+          document.getElementById('btn-cancel-create-order-modal').addEventListener('click', function() {
+            createOrderModal.classList.add('hidden');
+          });
+
+          function calculateAdminCreateTotal() {
+            var qty = parseInt(document.getElementById('admin-input-quantity').value) || 1;
+            var price = parseFloat(document.getElementById('admin-input-price').value) || 0;
+            var del = parseFloat(document.getElementById('admin-input-delivery').value) || 0;
+            var total = (price * qty) + del;
+            document.getElementById('admin-create-order-total-display').textContent = '৳' + total.toLocaleString('bn-BD');
+          }
+
+          document.getElementById('admin-input-quantity').addEventListener('input', calculateAdminCreateTotal);
+          document.getElementById('admin-input-price').addEventListener('input', calculateAdminCreateTotal);
+          document.getElementById('admin-input-delivery').addEventListener('input', calculateAdminCreateTotal);
+
+          document.getElementById('admin-select-product').addEventListener('change', function() {
+            var sel = this;
+            var opt = sel.options[sel.selectedIndex];
+            var customWrap = document.getElementById('admin-custom-product-wrapper');
+            if (sel.value === 'custom') {
+              customWrap.classList.remove('hidden');
+              document.getElementById('admin-input-price').value = 0;
+            } else {
+              customWrap.classList.add('hidden');
+              var p = opt.getAttribute('data-price');
+              if (p) document.getElementById('admin-input-price').value = p;
+            }
+            calculateAdminCreateTotal();
+          });
+
+          document.getElementById('btn-admin-del-free').addEventListener('click', function() {
+            document.getElementById('admin-input-delivery').value = 0;
+            calculateAdminCreateTotal();
+          });
+          document.getElementById('btn-admin-del-dhaka').addEventListener('click', function() {
+            document.getElementById('admin-input-delivery').value = 60;
+            calculateAdminCreateTotal();
+          });
+          document.getElementById('btn-admin-del-outside').addEventListener('click', function() {
+            document.getElementById('admin-input-delivery').value = 120;
+            calculateAdminCreateTotal();
+          });
+
+          document.getElementById('form-admin-create-order').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btn = document.getElementById('btn-submit-create-order');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ok-spinner"></span> তৈরি হচ্ছে...';
+
+            var form = e.target;
+            var selProd = document.getElementById('admin-select-product');
+            var opt = selProd.options[selProd.selectedIndex];
+            var productName = (selProd.value === 'custom')
+              ? (document.getElementById('admin-custom-product-name').value.trim() || 'কাস্টম প্রোডাক্ট')
+              : opt.getAttribute('data-name');
+
+            var payload = {
+              customerName: form.customerName.value.trim(),
+              customerPhone: form.customerPhone.value.trim(),
+              address: form.address.value.trim(),
+              district: form.district.value,
+              status: form.status.value,
+              productId: selProd.value === 'custom' ? undefined : selProd.value,
+              productName: productName,
+              quantity: parseInt(form.quantity.value) || 1,
+              price: parseFloat(form.price.value) || 0,
+              delivery: parseFloat(form.delivery.value) || 0,
+              advancePaid: parseFloat(form.advancePaid.value) || 0,
+              merchantId: form.merchantId.value
+            };
+
+            try {
+              var res = await fetch('/api/admin/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert('ম্যানুয়াল অর্ডার সফলভাবে তৈরি হয়েছে! Order ID: ' + (data.order ? data.order.id : ''));
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+                btn.disabled = false;
+                btn.innerHTML = 'অর্ডার তৈরি করুন';
+              }
+            } catch(err) {
+              alert('Error: ' + err.message);
+              btn.disabled = false;
+              btn.innerHTML = 'অর্ডার তৈরি করুন';
+            }
+          });
+
+          // -------------------------------------------------------------
+          // 4. DELETE ORDER
+          // -------------------------------------------------------------
           window.deleteAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' স্থায়ীভাবে ডিলিট করতে চান? এই কাজটি আর পূর্বাবস্থায় ফেরানো যাবে না!')) {
               return;
@@ -449,7 +782,7 @@ export const AdminOrdersPage: FC = () => {
               var data = await res.json();
               if (data.success) {
                 alert('অর্ডারটি সফলভাবে ডিলিট করা হয়েছে!');
-                var row = document.getElementById('admin-order-row-' + orderId);
+                var row = document.getElementById('order-row-' + orderId);
                 if (row) row.remove();
                 window.location.reload();
               } else {
@@ -460,9 +793,11 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // Confirm Order & Dispatch Meta CAPI Purchase
+          // -------------------------------------------------------------
+          // 5. CONFIRM ORDER & DISPATCH META CAPI PURCHASE
+          // -------------------------------------------------------------
           window.confirmAdminOrder = async function(orderId) {
-            if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' কনফার্ম করতে চান?\nকনফার্ম করলে মেটাতে ১টি অনুমোদিত Purchase ইভেন্ট পাঠানো হবে।')) {
+            if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' কনফার্ম করতে চান? কনফার্ম করলে মেটাতে ১টি অনুমোদিত Purchase ইভেন্ট পাঠানো হবে।')) {
               return;
             }
             try {
@@ -479,9 +814,11 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // Mark Order as Duplicate
+          // -------------------------------------------------------------
+          // 6. MARK ORDER AS DUPLICATE
+          // -------------------------------------------------------------
           window.markDuplicateAdminOrder = async function(orderId) {
-            if (!confirm('আপনি কি এই অর্ডারটিকে ডুপ্লিকেট হিসেবে চিহ্নিত করতে চান?\nডুপ্লিকেট অর্ডারে কোনো মেটা পার্চেস যাবে না।')) {
+            if (!confirm('আপনি কি এই অর্ডারটিকে ডুপ্লিকেট হিসেবে চিহ্নিত করতে চান? ডুপ্লিকেট অর্ডারে কোনো মেটা পার্চেস যাবে না।')) {
               return;
             }
             try {
@@ -498,7 +835,9 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // Reject / Cancel Order
+          // -------------------------------------------------------------
+          // 7. REJECT / CANCEL ORDER
+          // -------------------------------------------------------------
           window.rejectAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি অর্ডারটি বাতিল করতে চান?')) {
               return;
@@ -517,7 +856,9 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // Retry Meta CAPI Job
+          // -------------------------------------------------------------
+          // 8. RETRY META CAPI JOB
+          // -------------------------------------------------------------
           window.retryMetaJob = async function(orderId) {
             try {
               var res = await fetch('/api/admin/tracking/jobs/' + orderId + '/retry', { method: 'POST' });
