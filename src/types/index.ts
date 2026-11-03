@@ -152,6 +152,10 @@ export interface Order {
   consignmentId?: string | number
   trackingCode?: string
   courierProvider?: string
+  submissionCount?: number
+  isAutoMerged?: boolean
+  mergedOrderIds?: string[]
+  mergedInto?: string
 }
 
 export interface Customer {

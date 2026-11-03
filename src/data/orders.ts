@@ -192,6 +192,43 @@ export function createOrder(data: CreateOrderInput): Order {
   const orderStatus: OrderStatus = data.status || 'pending'
   const paymentStatus: PaymentStatus = dueOnDelivery === 0 ? 'fully_paid' : (advancePaid > 0 ? 'advance_paid' : 'cod')
 
+  // Auto-Merge Engine: Check for duplicate submission within 48 hours for the same customer phone
+  const normPhone = normalizeBdPhone(data.customerPhone)
+  if (normPhone && normPhone.length >= 10) {
+    const existingMaster = orders.find((o) => {
+      if (o.status === 'cancelled' || o.status === 'returned') return false
+      const oPhone = normalizeBdPhone(o.customerPhone)
+      if (oPhone !== normPhone) return false
+      const diffMs = now.getTime() - new Date(o.createdAt).getTime()
+      return diffMs <= 48 * 3600_000
+    })
+
+    if (existingMaster) {
+      const currentSubmissions = (existingMaster.submissionCount || 1) + 1
+      existingMaster.submissionCount = currentSubmissions
+      existingMaster.isAutoMerged = true
+
+      // Retain the longer / more complete customer name
+      if (data.customerName.trim().length > existingMaster.customerName.trim().length) {
+        existingMaster.customerName = data.customerName.trim()
+      }
+      // Retain the longer / more specific delivery address
+      if (data.address.trim().length > existingMaster.address.trim().length) {
+        existingMaster.address = data.address.trim()
+      }
+
+      existingMaster.timeline.push({
+        key: 'resubmitted' as any,
+        label: `গ্রাহক পুনরায় সাবমিট করেছেন (স্বয়ংক্রিয়ভাবে মার্জ করা হয়েছে - মোট ${currentSubmissions} বার)`,
+        timestamp: now.toISOString(),
+        done: true
+      })
+
+      saveCustomOrders()
+      return existingMaster
+    }
+  }
+
   const newOrder: Order = {
     id: orderId,
     customerName: data.customerName,
@@ -222,8 +259,17 @@ export function createOrder(data: CreateOrderInput): Order {
   }
 
   orders.unshift(newOrder)
+  // Ensure strict chronological sorting: Newest First
+  orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   saveCustomOrders()
   return newOrder
+}
+
+export function normalizeBdPhone(phone: string): string {
+  const digits = (phone || '').replace(/\D/g, '')
+  if (digits.startsWith('880')) return digits.slice(2)
+  if (digits.startsWith('88')) return digits.slice(2)
+  return digits
 }
 
 const ORDERS_FILE = path.resolve(process.cwd(), 'data/orders_store.json')
@@ -246,7 +292,7 @@ function saveCustomOrders(): void {
   } catch (e) {}
 }
 
-// Load previously saved orders on startup
+// Load previously saved orders on startup & sort chronologically (Newest First)
 const storedOrders = loadCustomOrders()
 if (storedOrders.length > 0) {
   for (const so of storedOrders) {
@@ -258,6 +304,8 @@ if (storedOrders.length > 0) {
     }
   }
 }
+// Sort all orders: Newest First (descending by createdAt timestamp)
+orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
 export function updateOrderStatus(orderId: string, status: OrderStatus): Order | null {
   const order = orders.find((o) => o.id.toLowerCase() === orderId.toLowerCase())
@@ -326,4 +374,89 @@ export function deleteOrder(orderId: string): boolean {
     return true
   }
   return false
+}
+
+export function bulkDeleteOrders(orderIds: string[]): number {
+  if (!orderIds || !orderIds.length) return 0
+  const idsToDelete = new Set(orderIds.map((id) => id.toLowerCase()))
+  const initialCount = orders.length
+  for (let i = orders.length - 1; i >= 0; i--) {
+    if (idsToDelete.has(orders[i].id.toLowerCase())) {
+      orders.splice(i, 1)
+    }
+  }
+  const deletedCount = initialCount - orders.length
+  if (deletedCount > 0) {
+    saveCustomOrders()
+  }
+  return deletedCount
+}
+
+export function mergeOrders(targetOrderId: string, childOrderIds: string[]): Order | null {
+  const master = orders.find((o) => o.id.toLowerCase() === targetOrderId.toLowerCase())
+  if (!master) return null
+
+  const validChildIds: string[] = []
+  for (const cId of childOrderIds) {
+    if (cId.toLowerCase() === targetOrderId.toLowerCase()) continue
+    const child = orders.find((o) => o.id.toLowerCase() === cId.toLowerCase())
+    if (child) {
+      validChildIds.push(child.id)
+      child.status = 'cancelled'
+      child.mergedInto = master.id
+      child.timeline.push({
+        key: 'cancelled',
+        label: `অর্ডারটি #${master.id}-এ মার্জ করা হয়েছে`,
+        timestamp: new Date().toISOString(),
+        done: true
+      })
+    }
+  }
+
+  if (validChildIds.length > 0) {
+    const existingMerged = master.mergedOrderIds || []
+    master.mergedOrderIds = Array.from(new Set([...existingMerged, ...validChildIds]))
+    master.isAutoMerged = true
+    master.submissionCount = (master.submissionCount || 1) + validChildIds.length
+    master.timeline.push({
+      key: 'resubmitted' as any,
+      label: `ডুপ্লিকেট মার্জ সম্পন্ন (${validChildIds.join(', ')})`,
+      timestamp: new Date().toISOString(),
+      done: true
+    })
+    saveCustomOrders()
+  }
+
+  return master
+}
+
+export function autoMergeAllDuplicates(): { mergedGroups: number; totalMerged: number } {
+  const groups = new Map<string, Order[]>()
+
+  for (const o of orders) {
+    if (o.status === 'cancelled' || o.status === 'returned') continue
+    const norm = normalizeBdPhone(o.customerPhone)
+    if (!norm || norm.length < 10) continue
+    if (!groups.has(norm)) groups.set(norm, [])
+    groups.get(norm)!.push(o)
+  }
+
+  let mergedGroups = 0
+  let totalMerged = 0
+
+  for (const [phone, group] of groups.entries()) {
+    if (group.length > 1) {
+      // Sort by creation date ascending: earliest is master order
+      group.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      const master = group[0]
+      const children = group.slice(1)
+      const childIds = children.map((c) => c.id)
+
+      mergeOrders(master.id, childIds)
+      mergedGroups++
+      totalMerged += childIds.length
+    }
+  }
+
+  return { mergedGroups, totalMerged }
 }

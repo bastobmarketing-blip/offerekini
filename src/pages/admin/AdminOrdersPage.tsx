@@ -19,19 +19,21 @@ function formatOrderDateTime(isoString: string): string {
 }
 
 export const AdminOrdersPage: FC = () => {
-  const duplicateMap = detectOrderDuplicates(orders)
+  // Sort chronologically: Newest orders first (descending by timestamp)
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const duplicateMap = detectOrderDuplicates(sortedOrders)
   const duplicateSuspectCount = Array.from(duplicateMap.values()).filter((d) => d.isDuplicateSuspect).length
 
   return (
     <AdminLayout title="Orders" active="orders">
-      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
         <div>
-          <h1 class="text-xl font-bold text-ok-charcoal">All Orders ({orders.length})</h1>
+          <h1 class="text-xl font-bold text-ok-charcoal">All Orders ({sortedOrders.length})</h1>
           <p class="text-xs text-ok-gray-500">
             প্ল্যাটফর্মের সকল কাস্টমার অর্ডার, তারিখ ও অথরিটেটিভ মেটা ট্র্যাকিং
             {duplicateSuspectCount > 0 && (
               <span class="ml-2 font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                ⚠️ {duplicateSuspectCount}টি সম্ভাব্য ডুপ্লিকেট শনাক্ত
+                ⚠️ {duplicateSuspectCount}টি ডুপ্লিকেট অর্ডার শনাক্ত
               </span>
             )}
           </p>
@@ -46,6 +48,18 @@ export const AdminOrdersPage: FC = () => {
           >
             <i class="fas fa-plus-circle"></i> নতুন অর্ডার যোগ করুন
           </button>
+
+          {/* SORT ORDER SELECT */}
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-bold text-ok-charcoal">সর্টিং:</label>
+            <select
+              id="sort-order-select"
+              class="text-xs font-medium px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-ok-green-700 shadow-sm cursor-pointer"
+            >
+              <option value="desc" selected>⬇️ নতুন থেকে পুরোনো (Newest First)</option>
+              <option value="asc">⬆️ পুরোনো থেকে নতুন (Oldest First)</option>
+            </select>
+          </div>
 
           {/* DATE FILTER */}
           <div class="flex items-center gap-1.5">
@@ -86,11 +100,70 @@ export const AdminOrdersPage: FC = () => {
         </div>
       </div>
 
+      {/* SMART QUICK-SELECT TOOLBAR */}
+      <div class="flex items-center justify-between gap-3 mb-4 flex-wrap bg-gray-50/90 p-3 rounded-2xl border border-gray-200 text-xs font-medium shadow-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-ok-charcoal font-bold flex items-center gap-1.5">
+            <i class="fas fa-check-double text-ok-green-700"></i> দ্রুত নির্বাচন:
+          </span>
+          <button
+            type="button"
+            id="btn-select-all-duplicates"
+            class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl font-bold border border-amber-300 transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+          >
+            <i class="fas fa-clone text-[11px] text-amber-700"></i> সকল ডুপ্লিকেট ({duplicateSuspectCount}টি)
+          </button>
+          <button
+            type="button"
+            id="btn-auto-merge-all"
+            class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-900 rounded-xl font-bold border border-purple-300 transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+            title="একই ফোন নম্বরের সকল ডুপ্লিকেট অর্ডার ১ ক্লিকে মাস্টার অর্ডারে মার্জ করুন"
+          >
+            <i class="fas fa-code-merge text-[11px] text-purple-700"></i> এক ক্লিকে সব মার্জ করুন
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-1.5">
+            <span class="text-ok-gray-500 font-bold">মার্চেন্ট মার্ক:</span>
+            <select
+              id="bulk-select-by-merchant"
+              class="bg-white border border-gray-200 rounded-xl px-2.5 py-1 text-xs font-medium focus:outline-none focus:border-ok-green-700 cursor-pointer shadow-xs"
+            >
+              <option value="">-- মার্চেন্ট সিলেক্ট করুন --</option>
+              {merchants.map((m) => (
+                <option value={m.id}>{m.storeName}</option>
+              ))}
+              <option value="unassigned">⚠️ Unassigned</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-ok-gray-500 font-bold">প্রোডাক্ট মার্ক:</span>
+            <select
+              id="bulk-select-by-product"
+              class="bg-white border border-gray-200 rounded-xl px-2.5 py-1 text-xs font-medium focus:outline-none focus:border-ok-green-700 cursor-pointer shadow-xs"
+            >
+              <option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option>
+              <option value="p-testo-king">Testo King</option>
+              <option value="p-focus-king">Focus King</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-ok-card">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-gray-50 text-ok-gray-500 font-semibold border-b border-gray-100 text-xs">
               <tr>
+                <th class="p-4 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    id="checkbox-select-all"
+                    class="w-4 h-4 rounded text-ok-green-800 cursor-pointer"
+                    title="সকল অর্ডার সিলেক্ট / আনসিলেক্ট করুন"
+                  />
+                </th>
                 <th class="p-4">Order ID & Date</th>
                 <th class="p-4">Customer & Product</th>
                 <th class="p-4">Assigned Merchant</th>
@@ -103,13 +176,15 @@ export const AdminOrdersPage: FC = () => {
               </tr>
             </thead>
             <tbody id="admin-orders-tbody" class="divide-y divide-gray-100">
-              {orders.map((o) => {
+              {sortedOrders.map((o) => {
                 const merchant = o.merchantId && o.merchantId !== 'unassigned' ? getMerchantById(o.merchantId) : undefined
                 const orderDateISO = o.createdAt || new Date().toISOString()
                 const formattedDate = formatOrderDateTime(orderDateISO)
                 const dateYMD = orderDateISO.split('T')[0]
+                const timestamp = new Date(orderDateISO).getTime()
                 const dupInfo = duplicateMap.get(o.id.toLowerCase())
                 const metaJob = getJobByOrderId(o.id)
+                const productId = o.items?.[0]?.productId || 'p-testo-king'
 
                 return (
                   <tr
@@ -117,9 +192,25 @@ export const AdminOrdersPage: FC = () => {
                     data-order-id={o.id}
                     data-customer-name={o.customerName}
                     data-merchant-id={o.merchantId || 'unassigned'}
+                    data-product-id={productId}
                     data-date-ymd={dateYMD}
+                    data-timestamp={timestamp}
+                    data-is-duplicate={dupInfo?.isDuplicateSuspect ? 'true' : 'false'}
                     id={`order-row-${o.id}`}
                   >
+                    <td class="p-4 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        class="order-select-checkbox w-4 h-4 rounded text-ok-green-800 cursor-pointer"
+                        value={o.id}
+                        data-order-id={o.id}
+                        data-merchant-id={o.merchantId || 'unassigned'}
+                        data-product-id={productId}
+                        data-date-ymd={dateYMD}
+                        data-is-duplicate={dupInfo?.isDuplicateSuspect ? 'true' : 'false'}
+                      />
+                    </td>
+
                     <td class="p-4">
                       <p class="font-bold text-ok-green-800 text-sm font-mono">{o.id}</p>
                       <p class="text-[11px] text-ok-gray-500 mt-1 flex items-center gap-1 font-medium">
@@ -137,10 +228,29 @@ export const AdminOrdersPage: FC = () => {
                           📦 {o.items.map((it) => `${it.productName} (x${it.quantity})`).join(', ')}
                         </p>
                       )}
+                      {o.isAutoMerged && (
+                        <div class="mt-1">
+                          <span class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                            🔀 মোট {o.submissionCount || 2} বার সাবমিশন মার্জ করা হয়েছে
+                          </span>
+                        </div>
+                      )}
                       {dupInfo?.isDuplicateSuspect && (
-                        <div class="mt-1.5 flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300">
-                          <i class="fas fa-triangle-exclamation text-amber-600"></i>
-                          <span>{dupInfo.suspectReason}</span>
+                        <div class="mt-1.5 flex items-center justify-between gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300">
+                          <span class="flex items-center gap-1">
+                            <i class="fas fa-triangle-exclamation text-amber-600"></i>
+                            {dupInfo.reason}
+                          </span>
+                          {dupInfo.isMaster && dupInfo.childIds.length > 0 && (
+                            <button
+                              type="button"
+                              onclick={`mergeOrderGroup('${o.id}', ${JSON.stringify(dupInfo.childIds)})`}
+                              class="bg-purple-700 hover:bg-purple-800 text-white px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors shadow-xs ml-1"
+                              title="এই কাস্টমারের সকল ডুপ্লিকেট অর্ডার এই মাস্টার অর্ডারে মার্জ করুন"
+                            >
+                              🔀 মার্জ করুন
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -284,13 +394,48 @@ export const AdminOrdersPage: FC = () => {
         </div>
       </div>
 
+      {/* FLOATING STICKY BULK ACTION BAR */}
+      <div
+        id="bulk-action-bar"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ok-charcoal text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 transition-all duration-300 transform translate-y-28 opacity-0 pointer-events-none"
+      >
+        <div class="flex items-center gap-2 font-bold text-xs sm:text-sm whitespace-nowrap">
+          <span class="w-2.5 h-2.5 rounded-full bg-ok-lime-400 animate-pulse"></span>
+          <span id="bulk-selected-count" class="font-mono text-ok-lime-400 font-extrabold text-sm sm:text-base">0</span>টি অর্ডার নির্বাচিত
+        </div>
+        <div class="h-5 w-px bg-white/20"></div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            id="btn-bulk-delete"
+            class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          >
+            <i class="fas fa-trash-alt"></i> একসাথে ডিলিট করুন
+          </button>
+          <button
+            type="button"
+            id="btn-bulk-merge"
+            class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          >
+            <i class="fas fa-code-merge"></i> ডুপ্লিকেট মার্জ করুন
+          </button>
+          <button
+            type="button"
+            id="btn-bulk-deselect"
+            class="text-xs text-white/70 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            বাতিল
+          </button>
+        </div>
+      </div>
+
       {/* CREATE MANUAL ORDER MODAL */}
       <div id="modal-create-order" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
           <button
             type="button"
             id="btn-close-create-order-modal"
-            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
           >
             ✕
           </button>
@@ -559,12 +704,13 @@ export const AdminOrdersPage: FC = () => {
       <script dangerouslySetInnerHTML={{
         __html: `
           // -------------------------------------------------------------
-          // 1. FILTER LOGIC
+          // 1. FILTER & DATE SORTING LOGIC
           // -------------------------------------------------------------
-          function applyFilters() {
+          function applyFiltersAndSort() {
             var selectedMerchant = document.getElementById('filter-merchant-select').value;
             var dateOption = document.getElementById('filter-date-select').value;
             var customDate = document.getElementById('filter-custom-date').value;
+            var sortOrder = document.getElementById('sort-order-select').value; // 'desc' or 'asc'
 
             var todayYMD = new Date().toISOString().split('T')[0];
             var yesterday = new Date(Date.now() - 86400000);
@@ -572,8 +718,20 @@ export const AdminOrdersPage: FC = () => {
             var sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
             var thisMonthPrefix = todayYMD.slice(0, 7);
 
-            var rows = document.querySelectorAll('.order-row');
+            var tbody = document.getElementById('admin-orders-tbody');
+            var rows = Array.from(tbody.querySelectorAll('.order-row'));
+
+            // Sort rows by timestamp
+            rows.sort(function(a, b) {
+              var tA = parseInt(a.getAttribute('data-timestamp')) || 0;
+              var tB = parseInt(b.getAttribute('data-timestamp')) || 0;
+              return (sortOrder === 'asc') ? (tA - tB) : (tB - tA);
+            });
+
+            // Re-append sorted rows & filter
             rows.forEach(function(r) {
+              tbody.appendChild(r);
+
               var mId = r.getAttribute('data-merchant-id') || 'unassigned';
               var rowDate = r.getAttribute('data-date-ymd') || '';
 
@@ -598,9 +756,12 @@ export const AdminOrdersPage: FC = () => {
                 r.style.display = 'none';
               }
             });
+
+            updateBulkBar();
           }
 
-          document.getElementById('filter-merchant-select').addEventListener('change', applyFilters);
+          document.getElementById('sort-order-select').addEventListener('change', applyFiltersAndSort);
+          document.getElementById('filter-merchant-select').addEventListener('change', applyFiltersAndSort);
           document.getElementById('filter-date-select').addEventListener('change', function(e) {
             var customInput = document.getElementById('filter-custom-date');
             if (e.target.value === 'custom') {
@@ -608,12 +769,231 @@ export const AdminOrdersPage: FC = () => {
             } else {
               customInput.classList.add('hidden');
             }
-            applyFilters();
+            applyFiltersAndSort();
           });
-          document.getElementById('filter-custom-date').addEventListener('change', applyFilters);
+          document.getElementById('filter-custom-date').addEventListener('change', applyFiltersAndSort);
 
           // -------------------------------------------------------------
-          // 2. ASSIGN MERCHANT MODAL
+          // 2. CHECKBOX SELECTION & FLOATING BULK BAR
+          // -------------------------------------------------------------
+          var selectAllCheckbox = document.getElementById('checkbox-select-all');
+          var bulkBar = document.getElementById('bulk-action-bar');
+          var bulkCountElem = document.getElementById('bulk-selected-count');
+
+          function getCheckedBoxes() {
+            return Array.from(document.querySelectorAll('.order-select-checkbox:checked'));
+          }
+
+          function updateBulkBar() {
+            var checked = getCheckedBoxes();
+            var count = checked.length;
+            bulkCountElem.textContent = count;
+
+            if (count > 0) {
+              bulkBar.classList.remove('translate-y-28', 'opacity-0', 'pointer-events-none');
+            } else {
+              bulkBar.classList.add('translate-y-28', 'opacity-0', 'pointer-events-none');
+            }
+
+            // Update select all state
+            var visibleBoxes = Array.from(document.querySelectorAll('.order-row:not([style*="display: none"]) .order-select-checkbox'));
+            if (visibleBoxes.length > 0 && checked.length === visibleBoxes.length) {
+              selectAllCheckbox.checked = true;
+              selectAllCheckbox.indeterminate = false;
+            } else if (checked.length > 0) {
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = true;
+            } else {
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = false;
+            }
+          }
+
+          selectAllCheckbox.addEventListener('change', function() {
+            var isChecked = this.checked;
+            var visibleBoxes = document.querySelectorAll('.order-row:not([style*="display: none"]) .order-select-checkbox');
+            visibleBoxes.forEach(function(box) {
+              box.checked = isChecked;
+            });
+            updateBulkBar();
+          });
+
+          document.getElementById('admin-orders-tbody').addEventListener('change', function(e) {
+            if (e.target.classList.contains('order-select-checkbox')) {
+              updateBulkBar();
+            }
+          });
+
+          document.getElementById('btn-bulk-deselect').addEventListener('click', function() {
+            document.querySelectorAll('.order-select-checkbox').forEach(function(b) { b.checked = false; });
+            updateBulkBar();
+          });
+
+          // Smart Select: Select All Duplicates
+          document.getElementById('btn-select-all-duplicates').addEventListener('click', function() {
+            var boxes = document.querySelectorAll('.order-select-checkbox');
+            var matched = 0;
+            boxes.forEach(function(b) {
+              if (b.getAttribute('data-is-duplicate') === 'true') {
+                b.checked = true;
+                matched++;
+              }
+            });
+            updateBulkBar();
+            if (matched === 0) alert('বর্তমানে কোনো ডুপ্লিকেট অর্ডার শনাক্ত নেই।');
+          });
+
+          // Smart Select: By Merchant
+          document.getElementById('bulk-select-by-merchant').addEventListener('change', function() {
+            var mId = this.value;
+            if (!mId) return;
+            document.querySelectorAll('.order-select-checkbox').forEach(function(b) {
+              if (b.getAttribute('data-merchant-id') === mId) {
+                b.checked = true;
+              }
+            });
+            updateBulkBar();
+            this.value = '';
+          });
+
+          // Smart Select: By Product
+          document.getElementById('bulk-select-by-product').addEventListener('change', function() {
+            var pId = this.value;
+            if (!pId) return;
+            document.querySelectorAll('.order-select-checkbox').forEach(function(b) {
+              if (b.getAttribute('data-product-id') === pId) {
+                b.checked = true;
+              }
+            });
+            updateBulkBar();
+            this.value = '';
+          });
+
+          // -------------------------------------------------------------
+          // 3. BULK ACTIONS: DELETE & MERGE
+          // -------------------------------------------------------------
+          document.getElementById('btn-bulk-delete').addEventListener('click', async function() {
+            var checked = getCheckedBoxes();
+            var ids = checked.map(function(b) { return b.value; });
+            if (!ids.length) return;
+
+            if (!confirm('আপনি কি নিশ্চিতভাবে নির্বাচিত ' + ids.length + 'টি অর্ডার স্থায়ীভাবে ডিলিট করতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না!')) {
+              return;
+            }
+
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ok-spinner"></span> ডিলিট হচ্ছে...';
+
+            try {
+              var res = await fetch('/api/admin/orders/bulk-delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderIds: ids })
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert(data.message || 'অর্ডারগুলো সফলভাবে ডিলিট করা হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt"></i> একসাথে ডিলিট করুন';
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-trash-alt"></i> একসাথে ডিলিট করুন';
+            }
+          });
+
+          document.getElementById('btn-bulk-merge').addEventListener('click', async function() {
+            var checked = getCheckedBoxes();
+            var ids = checked.map(function(b) { return b.value; });
+            if (!ids.length) return;
+
+            if (!confirm('নির্বাচিত ' + ids.length + 'টি অর্ডারের মধ্যে একই ফোন নম্বরের ডুপ্লিকেটগুলোকে ১টি মাস্টার অর্ডারে মার্জ করবেন?')) {
+              return;
+            }
+
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ok-spinner"></span> মার্জ হচ্ছে...';
+
+            try {
+              var res = await fetch('/api/admin/orders/auto-merge-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert(data.message || 'ডুপ্লিকেটগুলো সফলভাবে মার্জ করা হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-code-merge"></i> ডুপ্লিকেট মার্জ করুন';
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-code-merge"></i> ডুপ্লিকেট মার্জ করুন';
+            }
+          });
+
+          document.getElementById('btn-auto-merge-all').addEventListener('click', async function() {
+            if (!confirm('সিস্টেমের সকল ডুপ্লিকেট অর্ডার স্বয়ংক্রিয়ভাবে খুঁজে ১টি করে মাস্টার অর্ডারে মার্জ করতে চান?')) {
+              return;
+            }
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ok-spinner"></span> মার্জ হচ্ছে...';
+
+            try {
+              var res = await fetch('/api/admin/orders/auto-merge-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert(data.message || 'ডুপ্লিকেটগুলো সফলভাবে মার্জ করা হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-code-merge text-[11px] text-purple-700"></i> এক ক্লিকে সব মার্জ করুন';
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-code-merge text-[11px] text-purple-700"></i> এক ক্লিকে সব মার্জ করুন';
+            }
+          });
+
+          window.mergeOrderGroup = async function(targetId, childIds) {
+            if (!confirm('অর্ডার #' + targetId + '-এ অন্য ডুপ্লিকেটগুলো মার্জ করতে চান?')) {
+              return;
+            }
+            try {
+              var res = await fetch('/api/admin/orders/merge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetOrderId: targetId, childOrderIds: childIds })
+              });
+              var data = await res.json();
+              if (data.success) {
+                alert(data.message || 'সফলভাবে মার্জ করা হয়েছে!');
+                window.location.reload();
+              } else {
+                alert('ত্রুটি: ' + (data.error || 'Failed'));
+              }
+            } catch(e) {
+              alert('Error: ' + e.message);
+            }
+          };
+
+          // -------------------------------------------------------------
+          // 4. ASSIGN MERCHANT MODAL
           // -------------------------------------------------------------
           var assignModal = document.getElementById('modal-assign-merchant');
           window.openAssignMerchantModal = function(orderId) {
@@ -667,7 +1047,7 @@ export const AdminOrdersPage: FC = () => {
           });
 
           // -------------------------------------------------------------
-          // 3. CREATE MANUAL ORDER MODAL
+          // 5. CREATE MANUAL ORDER MODAL
           // -------------------------------------------------------------
           var createOrderModal = document.getElementById('modal-create-order');
           document.getElementById('btn-open-create-order').addEventListener('click', function() {
@@ -771,7 +1151,7 @@ export const AdminOrdersPage: FC = () => {
           });
 
           // -------------------------------------------------------------
-          // 4. DELETE ORDER
+          // 6. SINGLE ORDER ACTIONS: DELETE, CONFIRM, DUPLICATE, REJECT
           // -------------------------------------------------------------
           window.deleteAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' স্থায়ীভাবে ডিলিট করতে চান? এই কাজটি আর পূর্বাবস্থায় ফেরানো যাবে না!')) {
@@ -793,9 +1173,6 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // -------------------------------------------------------------
-          // 5. CONFIRM ORDER & DISPATCH META CAPI PURCHASE
-          // -------------------------------------------------------------
           window.confirmAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি নিশ্চিতভাবে অর্ডার #' + orderId + ' কনফার্ম করতে চান? কনফার্ম করলে মেটাতে ১টি অনুমোদিত Purchase ইভেন্ট পাঠানো হবে।')) {
               return;
@@ -814,9 +1191,6 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // -------------------------------------------------------------
-          // 6. MARK ORDER AS DUPLICATE
-          // -------------------------------------------------------------
           window.markDuplicateAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি এই অর্ডারটিকে ডুপ্লিকেট হিসেবে চিহ্নিত করতে চান? ডুপ্লিকেট অর্ডারে কোনো মেটা পার্চেস যাবে না।')) {
               return;
@@ -835,9 +1209,6 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // -------------------------------------------------------------
-          // 7. REJECT / CANCEL ORDER
-          // -------------------------------------------------------------
           window.rejectAdminOrder = async function(orderId) {
             if (!confirm('আপনি কি অর্ডারটি বাতিল করতে চান?')) {
               return;
@@ -856,9 +1227,6 @@ export const AdminOrdersPage: FC = () => {
             }
           };
 
-          // -------------------------------------------------------------
-          // 8. RETRY META CAPI JOB
-          // -------------------------------------------------------------
           window.retryMetaJob = async function(orderId) {
             try {
               var res = await fetch('/api/admin/tracking/jobs/' + orderId + '/retry', { method: 'POST' });

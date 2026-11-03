@@ -6,6 +6,8 @@ export interface DuplicateInfo {
   duplicateOrderIds: string[]
   firstOrderId: string
   firstOrderDate: string
+  isMaster: boolean
+  childIds: string[]
   reason: string
 }
 
@@ -26,10 +28,11 @@ export function detectOrderDuplicates(orders: Order[]): Map<string, DuplicateInf
   const result = new Map<string, DuplicateInfo>()
   if (!orders || orders.length === 0) return result
 
-  // Group by normalized phone
+  // Group by normalized phone (ignoring cancelled / returned)
   const phoneGroups = new Map<string, Order[]>()
 
   for (const o of orders) {
+    if (o.status === 'cancelled' || o.status === 'returned') continue
     const normPhone = normalizePhone(o.customerPhone)
     if (normPhone && normPhone.length >= 10) {
       const list = phoneGroups.get(normPhone) || []
@@ -47,13 +50,18 @@ export function detectOrderDuplicates(orders: Order[]): Map<string, DuplicateInf
       const orderIds = group.map((g) => g.id)
 
       for (const o of group) {
+        const isMaster = o.id === first.id
         result.set(o.id.toLowerCase(), {
           isDuplicateSuspect: true,
           groupCount: group.length,
           duplicateOrderIds: orderIds,
           firstOrderId: first.id,
           firstOrderDate: first.createdAt,
-          reason: `একই ফোন নম্বরে (${phone}) মোট ${group.length}টি অর্ডার পাওয়া গেছে`
+          isMaster,
+          childIds: orderIds.filter((id) => id !== o.id),
+          reason: isMaster
+            ? `একই ফোন নম্বরে (${phone}) মোট ${group.length}টি অর্ডার পাওয়া গেছে`
+            : `ডুপ্লিকেট অর্ডার (Master: #${first.id})`
         })
       }
     }

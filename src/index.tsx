@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 // ---- Data ----
 import { products, getProductBySlug, getProductsByCategory, searchProducts } from './data/products'
 import { getCategoryBySlug } from './data/categories'
-import { getOrderById, getOrdersByMerchant, orders, createOrder, deleteOrder } from './data/orders'
+import { getOrderById, getOrdersByMerchant, orders, createOrder, deleteOrder, bulkDeleteOrders, mergeOrders, autoMergeAllDuplicates } from './data/orders'
 import { getCustomerByPhone, customers } from './data/customers'
 import { merchants, getMerchantById, addMerchant, updateMerchant, deleteMerchant } from './data/merchants'
 import { getSettlementsByMerchant } from './data/settlements'
@@ -869,6 +869,69 @@ app.delete('/api/admin/orders/:id', (c) => {
     return c.json({ success: true, message: 'অর্ডারটি সফলভাবে ডিলিট করা হয়েছে।' })
   }
   return c.json({ success: false, error: 'অর্ডার ডিলিট করতে ব্যর্থ হয়েছে।' }, 500)
+})
+
+// Admin Bulk Delete Orders API
+app.post('/api/admin/orders/bulk-delete', async (c) => {
+  if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+  try {
+    const body = await c.req.json()
+    const orderIds = Array.isArray(body.orderIds) ? body.orderIds : []
+    if (!orderIds.length) {
+      return c.json({ success: false, error: 'কোনো অর্ডার নির্বাচন করা হয়নি।' }, 400)
+    }
+    const count = bulkDeleteOrders(orderIds)
+    return c.json({ success: true, count, message: `${count}টি অর্ডার সফলভাবে ডিলিট করা হয়েছে।` })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Merge Duplicate Orders API
+app.post('/api/admin/orders/merge', async (c) => {
+  if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+  try {
+    const body = await c.req.json()
+    const targetOrderId = body.targetOrderId
+    const childOrderIds = Array.isArray(body.childOrderIds) ? body.childOrderIds : []
+    if (!targetOrderId || !childOrderIds.length) {
+      return c.json({ success: false, error: 'টার্গেট ও মার্জ করার অর্ডার নির্বাচন করুন।' }, 400)
+    }
+
+    const merged = mergeOrders(targetOrderId, childOrderIds)
+    if (!merged) {
+      return c.json({ success: false, error: 'মাস্টার অর্ডার পাওয়া যায়নি।' }, 404)
+    }
+
+    // Permanently skip Meta tracking for merged children
+    for (const childId of childOrderIds) {
+      skipPurchaseJob(childId, `Merged into master order ${targetOrderId}`)
+    }
+
+    return c.json({
+      success: true,
+      masterOrder: merged,
+      message: `${childOrderIds.length}টি ডুপ্লিকেট অর্ডার সফলভাবে #${targetOrderId}-এ মার্জ করা হয়েছে!`
+    })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// Admin Auto-Merge All Duplicates API
+app.post('/api/admin/orders/auto-merge-all', (c) => {
+  if (!isAdminAuthenticated(c)) return c.json({ success: false, error: 'Unauthorized' }, 401)
+  try {
+    const { mergedGroups, totalMerged } = autoMergeAllDuplicates()
+    return c.json({
+      success: true,
+      mergedGroups,
+      totalMerged,
+      message: `${mergedGroups}টি গ্রুপে মোট ${totalMerged}টি ডুপ্লিকেট অর্ডার সফলভাবে মার্জ করা হয়েছে!`
+    })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
 })
 
 // Admin Manual Order Creation API
